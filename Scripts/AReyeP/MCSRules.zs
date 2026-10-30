@@ -24,6 +24,20 @@ class MCSRules : EventHandler
 		srfuse = false;
 	}
 
+	// MCS's TakeDamage grunts (TAKEDAMAGESND) when nothing attacked: hurt by acid,
+	// landmines, the death artefact, a clone's or drum's blast (TakeRandomDamage)
+	// or EoD's burning floors; shots and fireballs pass their attacker and stay
+	// silent (eod4sdl wl_agent.cpp TakeDamage, wl_act2.cpp TakeRandomDamage)
+	override void WorldThingDamaged(WorldEvent e)
+	{
+		if (!e.Thing || !e.Thing.player || e.Damage <= 0) { return; }
+		if (e.DamageSource && !(e.DamageSource is "SRFloorHazard") && e.DamageType != 'Explosion') { return; }
+
+		String family = AReyePGame.CurrentFamily();
+		if (family == "SR") { e.Thing.A_StartSound("sr/sound16", CHAN_AUTO, CHANF_DEFAULT, 1.0, ATTN_NONE); }
+		else if (family == "EOD") { e.Thing.A_StartSound("eod/takedamage", CHAN_AUTO, CHANF_DEFAULT, 1.0, ATTN_NONE); }
+	}
+
 	// The cheat keys (AReyePExtension.InputProcess)
 	override void NetworkProcess(ConsoleEvent e)
 	{
