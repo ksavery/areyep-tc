@@ -1,6 +1,7 @@
 // The AReyeP games' hooks into the TC (Scripts/Extensions/GameExtension.zs in
 // the TC): Spear Resurrection (SR1, SR2) and End of Destiny (EOD) as games of
-// their own, with MCS's screens, rules and status bars.
+// their own, with MCS's screens, rules and status bars; and Wolfendoom (WFD), a
+// Wolfenstein 3D mod, which keeps the TC's Wolf3D look and rules.
 class AReyePExtension : GameExtension
 {
 	// MCS's in-game message (End of Destiny): one line at a time, replaced by the
@@ -21,18 +22,19 @@ class AReyePExtension : GameExtension
 		exts.Push("SR1");
 		exts.Push("SR2");
 		exts.Push("EOD");
+		exts.Push("WFD");
 	}
 
 	override bool IsDefault() { return true; } // the TC's screens are AReyeP's before a game is picked
 
 	override String DataSet(String ext) { return AReyePGame.Family(ext); }
 	override String Title(String ext) { return AReyePGame.Title(ext); }
-	override int GameType(String ext) { return 1; } // Spear rules; tables come from the game's family
-	override int MapNumber(String ext, int slot) { return AReyePGame.MapBase(ext) + slot + 1; }
+	override int GameType(String ext) { return AReyePGame.Family(ext) == "WFD" ? 0 : 1; } // Wolf3D or Spear rules; tables come from the game's family
+	override int MapNumber(String ext, int slot) { return AReyePGame.MapNumber(ext, slot); }
 
 	static clearscope int Slot(ParsedMap map)
 	{
-		return map ? map.mapnum - AReyePGame.MapBase(map.extension) - 1 : -1;
+		return AReyePGame.SlotOf(map);
 	}
 
 	// Map building ---------------------------------------------------------------
@@ -55,6 +57,17 @@ class AReyePExtension : GameExtension
 			return ceiling, floor, "", "", false;
 		}
 
+		// Wolfendoom: Wolf3D's ceilings by floor (vgaCeiling, WOLFDOOM.EXE image
+		// 0x3da10, unchanged from Wolf3D); the TC would look them up by levelnum
+		if (AReyePGame.Family(game) == "WFD")
+		{
+			static const int wdceilings[] = {
+				0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0xBF, 0x4E, 0x4E, 0x4E, 0x1D, 0x8D, 0x4E, 0x1D, 0x2D, 0x1D, 0x8D,
+				0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x2D, 0xDD, 0x1D, 0x1D, 0x98, 0x1D, 0x9D, 0x2D, 0xDD, 0xDD, 0x9D, 0x2D, 0x4D, 0x1D, 0xDD,
+				0x7D, 0x1D, 0x2D, 0x2D, 0xDD, 0xD7, 0x1D, 0x1D, 0x1D, 0x2D, 0x1D, 0x1D, 0x1D, 0x1D, 0xDD, 0xDD, 0x7D, 0xDD, 0xDD, 0xDD };
+			return wdceilings[clamp(Slot(map), 0, 59)], -1, "", "", false;
+		}
+
 		// End of Destiny textures its floors and ceilings from the map's row 0
 		String floortex = AReyePGame.EoDFlatTexture(map, false, warped);
 		String ceilingtex = AReyePGame.EoDFlatTexture(map, true, warped);
@@ -73,10 +86,17 @@ class AReyePExtension : GameExtension
 		return -1, -1, ceilingtex, floortex, sky;
 	}
 
-	// A dev "+areyep_startmap GAMEMAPS.SR1:Black_Forest" starts on that map
+	// A dev "+areyep_startmap GAMEMAPS.SR1:Black_Forest" starts on that map;
+	// Wolfendoom starts on the first floor of the episode picked (WDEpisodeMenu)
 	override ParsedMap StartingMap(MapHandler handler)
 	{
-		if (!areyep_startmap.length()) { return null; }
+		if (!areyep_startmap.length())
+		{
+			if (AReyePGame.Family(g_modgame) != "WFD") { return null; }
+
+			int episode = clamp(areyep_wdepisode, 1, 6);
+			return handler.parsedmaps.GetMapDataByNumber(AReyePGame.MapNumber("WFD", (episode - 1) * 10), "GAMEMAPS.WFD");
+		}
 
 		ParsedMap start;
 
@@ -114,6 +134,7 @@ class AReyePExtension : GameExtension
 	// doors (90 + 2 * 6) keep the old ones, wooden doors creak (SNDSEQ)
 	override int DoorSound(String game, PolyobjectHandle po, bool pushwall)
 	{
+		if (AReyePGame.Family(game) == "WFD") { return pushwall ? 10 : 8; }
 		if (AReyePGame.Family(game) != "EOD") { return -1; }
 		if (pushwall) { return 7; }
 
@@ -146,7 +167,7 @@ class AReyePExtension : GameExtension
 	// MCS's messages for the TC's pistol and machine gun (EoD shows them, SR prints none)
 	override String PickupMessage(String game, Inventory item)
 	{
-		if (item.PickupMsg.length()) { return ""; } // the item's own
+		if (item.PickupMsg.length() || !AReyePGame.IsMCS(AReyePGame.Family(game))) { return ""; } // the item's own; Wolf3D prints none
 
 		if (item is "WolfMachineGun") { return "You picked up a machinegun"; }
 		if (item is "WolfPistol") { return "You picked up a pistol"; }
@@ -179,29 +200,41 @@ class AReyePExtension : GameExtension
 	}
 
 	// MCS's skill faces carry the rock backdrop in their pictures: no window there
-	override bool MenuBox(String game, Menu current) { return !(game.length() && current is "SkillMenu"); }
+	// Below, an empty game is the game picker (AReyeP's look); Wolfendoom keeps the TC's Wolf3D look
+	static bool MCSLook(String game) { return AReyePGame.IsMCS(AReyePGame.Family(game)); }
 
-	override bool ReadThis(String game) { return game.length() > 0; } // MCS's games have it back
+	override bool MenuBox(String game, Menu current) { return !(MCSLook(game) && current is "SkillMenu"); }
 
-	override int DisabledColor(String game) { return game.length() ? Font.FindFontColor("AReyePMenuDisable") : -1; }
+	override bool ReadThis(String game) { return MCSLook(game) || AReyePGame.Family(game) == "WFD"; }
+
+	override int DisabledColor(String game) { return MCSLook(game) ? Font.FindFontColor("AReyePMenuDisable") : -1; }
 
 	override TextureID MenuTexture(String game, String name, int usetype) { return AReyePGame.MenuTex(name, usetype); }
 
-	override int FadeColor(String game) { return game.length() ? 0x0 : -1; } // the rocky backdrop covers the screen; MCS fades through black
+	override int FadeColor(String game) { return MCSLook(game) ? 0x0 : -1; } // the rocky backdrop covers the screen; MCS fades through black
 
 	// MCS's intermission fills with palette 0x1D, a dark grey, where Wolf3D has teal
-	// (LevelCompleted's VWB_Bar: SR image 0xa04e, EoD the same)
-	override int IntermissionColor(String game) { return game.length() ? 0x383838 : -1; }
+	// (LevelCompleted's VWB_Bar: SR image 0xa04e, EoD the same). Wolfendoom
+	// uses the same grey around its exit screen.
+	override int IntermissionColor(String game) { return MCSLook(game) || AReyePGame.Family(game) == "WFD" ? 0x383838 : -1; }
 
 	override Name FinaleMenu(String game) { return AReyePGame.FinaleMenu(); }
 
-	override int Episode(String game) { return game.length() ? 9 : -1; } // MAPINFO's LEVEL episode
+	override int Episode(String game) { return MCSLook(game) || AReyePGame.Family(game) == "WFD" ? 9 : -1; } // MAPINFO's LEVEL episode (Wolfendoom picks its episode in WDEpisodeMenu first)
 
 	// Straight on to the game picker: the TC's Wolf3D intro (LoadScreen) isn't part of the AReyeP games
 	override bool SkipIntro(String game) { return true; }
 
 	override String IntroGraphic(String game, String which)
 	{
+		if (AReyePGame.Family(game) == "WFD")
+		{
+			if (which == "startup" || which == "startup2" || which == "title") { return "WDTITLE"; }
+			if (which == "warning") { return "WDSTART"; }
+			if (which == "credits") { return "WDCREDIT"; }
+			return "";
+		}
+
 		if (AReyePGame.Family(game) == "EOD")
 		{
 			// EoD's sign-on is only the 88x64 "AReyeP and MCS present": open on the title
@@ -223,7 +256,7 @@ class AReyePExtension : GameExtension
 	// PG-13 notice (SR image 0xa2f9, EoD 0xd464)
 	override bool DrawIntroScreen(String game, String which, TextureID tex)
 	{
-		if (which != "warning") { return false; }
+		if (which != "warning" || AReyePGame.Family(game) == "WFD") { return false; }
 
 		screen.DrawTexture(tex, false, 110, 60, DTA_320x200, true);
 		return true;
@@ -231,10 +264,34 @@ class AReyePExtension : GameExtension
 
 	// Status bar and messages ---------------------------------------------------------
 
+	ui void DrawWDBar(ClassicStatusBar sb, ParsedMap map, int points, int lives)
+	{
+		// Wolfendoom's VGAGRAPH 86, 91-132 uses Wolf3D's 320x40 bar layout.
+		// Drawn bottom-aligned at 198 like SR's and EoD's bars, so its top is
+		// at 158 (not Wolf3D's 160): pictures go at 158 + their Wolf3D offset.
+		sb.DrawImage("WDBAR", (160, 198), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_CENTER_BOTTOM);
+		PlayerInfo player = sb.CPlayer;
+		if (points < 0) { points = sb.GetAmount("Score"); }
+		if (lives < 0) { lives = LifeHandler.GetLives(player.mo); }
+		DrawNumber(sb, Slot(map) % 10 + 1, 16, 2, "WD");
+		DrawNumber(sb, points % 1000000, 48, 6, "WD");
+		DrawNumber(sb, max(lives, 0), 112, 1, "WD");
+		DrawNumber(sb, player.health, 168, 3, "WD");
+		DrawNumber(sb, player.mo.CountInv("WolfClip"), 216, 2, "WD");
+		sb.DrawMugShot(136, 162, face:"WDF", accuracy:7);
+		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (240, 162), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (240, 178), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		Weapon w = player.ReadyWeapon;
+		String pic = w is "WolfKnife" ? "WDKNIFE" : w is "WolfMachineGun" ? "WDMGUN" : w is "WolfChaingun" ? "WDCGUN" : "WDPISTOL";
+		sb.DrawImage(pic, (256, 166), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+	}
+
 	override bool DrawStatusBar(String game, ClassicStatusBar sb, int points, int lives)
 	{
 		ParsedMap map = MapHandler.GetCurrentMap();
 		if (!map) { return false; }
+		if (AReyePGame.Family(game) == "WFD") { DrawWDBar(sb, map, points, lives); return true; }
+		if (!MCSLook(game)) { return false; }
 
 		DrawBar(sb, map, points, lives, AReyePGame.Family(game) == "EOD" ? "EOD" : "SR");
 		return true;
@@ -334,7 +391,7 @@ class AReyePExtension : GameExtension
 	// at all): the TC's notification log stays off for them
 	override bool ProcessNotify(String game, ClassicStatusBar sb, int printlevel, String outline)
 	{
-		if (!game.length()) { return false; }
+		if (!MCSLook(game)) { return false; }
 
 		String text = ZScriptTools.StripControlCodes(outline);
 		while (text.length() && (text.ByteAt(text.length() - 1) == 0x0A || text.ByteAt(text.length() - 1) == 0x0D)) { text.DeleteLastCharacter(); }
@@ -361,7 +418,7 @@ class AReyePExtension : GameExtension
 	// SR and EoD have their own cheat keys in place of Wolf3D's
 	override bool InputProcess(String game, InputEvent e)
 	{
-		if (!game.length()) { return false; }
+		if (!MCSLook(game)) { return false; }
 
 		bool down = e.Type == InputEvent.Type_KeyDown;
 		if (down && cheatmessage) { cheatmessage.Close(); }
@@ -383,5 +440,5 @@ class AReyePExtension : GameExtension
 		return true;
 	}
 
-	override bool StockCheats(String game) { return !game.length(); }
+	override bool StockCheats(String game) { return !MCSLook(game); }
 }

@@ -6,5 +6,6 @@ areyep_args() {
 	local suffix=$1
 	args=(-iwad "Wolf3D-TC$suffix.ipk3" -file "AReyeP$suffix.pk3" AReyeP-data.pk3
 		VSWAP.SR GAMEMAPS.SR1 MAPHEAD.SR1 GAMEMAPS.SR2 MAPHEAD.SR2
-		VSWAP.EOD GAMEMAPS.EOD MAPHEAD.EOD)
+		VSWAP.EOD GAMEMAPS.EOD MAPHEAD.EOD
+		VSWAP.WFD GAMEMAPS.WFD MAPHEAD.WFD)
 }

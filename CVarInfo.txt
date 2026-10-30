@@ -19,3 +19,4 @@ user noarchive string areyep_at = ""; // dev: "tic:command,..." console commands
 user noarchive string areyep_playmusic = ""; // dev: play this song four seconds after startup
 user noarchive int areyep_hurt = 0; // dev: two seconds in, deal this much damage to each watched actor
 user noarchive int areyep_exit = 0; // dev: 1/2 = take the normal/secret exit shortly after each level loads
+server noarchive int areyep_wdepisode = 1; // Wolfendoom episode (1-6) picked in WDEpisodeMenu; New Game starts its first floor

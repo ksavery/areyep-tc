@@ -2,6 +2,7 @@
 //
 // Family: the shared VSWAP / GraphicMaps / TileCodes set the game uses
 // MapBase: map numbers are MapBase + slot + 1, so MAPINFO levelnums are unique per game
+// (Wolfendoom keeps Wolf3D's episodes: MapBase + episode * 100 + floor, 5101-5610)
 class AReyePGame
 {
 	static clearscope bool, String, String, int Info(String ext)
@@ -11,6 +12,7 @@ class AReyePGame
 		if (ext == "SR1") { return true, "SR", "Spear Resurrection", 2000; }
 		if (ext == "SR2") { return true, "SR", "Spear Resurrection (New Maps)", 3000; }
 		if (ext == "EOD") { return true, "EOD", "Spear: End of Destiny", 4000; }
+		if (ext == "WFD") { return true, "WFD", "Wolfendoom", 5000; }
 
 		return false, "", "", -1;
 	}
@@ -45,6 +47,30 @@ class AReyePGame
 		return base;
 	}
 
+	// SR and EoD run on MCS's Spear engine; Wolfendoom is a Wolfenstein 3D mod
+	static clearscope bool IsMCS(String family)
+	{
+		return family == "SR" || family == "EOD";
+	}
+
+	// MAPINFO level number of a map slot (0-based, as in the GAMEMAPS file)
+	static clearscope int MapNumber(String ext, int slot)
+	{
+		int base = MapBase(ext);
+		if (Family(ext) == "WFD") { return base + (slot / 10 + 1) * 100 + slot % 10 + 1; }
+		return base + slot + 1;
+	}
+
+	// The 0-based slot of a parsed map, -1 outside AReyeP games
+	static clearscope int SlotOf(ParsedMap pm)
+	{
+		if (!pm || !IsGame(pm.extension)) { return -1; }
+
+		int n = pm.mapnum - MapBase(pm.extension);
+		if (Family(pm.extension) == "WFD") { return (n / 100 - 1) * 10 + n % 100 - 1; }
+		return n - 1;
+	}
+
 	// Family of the parsed map being played (or about to be), "" outside AReyeP games
 	static clearscope String CurrentFamily()
 	{
@@ -61,10 +87,7 @@ class AReyePGame
 		MapHandler handler = MapHandler.Get();
 		if (!handler) { return -1; }
 
-		ParsedMap pm = handler.curmap ? handler.curmap : handler.queuedmap;
-		if (!pm || !IsGame(pm.extension)) { return -1; }
-
-		return pm.mapnum - MapBase(pm.extension) - 1;
+		return SlotOf(handler.curmap ? handler.curmap : handler.queuedmap);
 	}
 
 	// The TC asks for Wolf3D songs by name for its title, menus and screens; the
@@ -73,11 +96,20 @@ class AReyePGame
 	// and high score song, Victory's, the ending's. Before a game is picked, SR's.
 	static clearscope String ModMusic(String song)
 	{
-		if (song == "" || song.Left(5) ~== "SRMUS" || song.Left(6) ~== "EODMUS") { return ""; }
+		if (song == "" || song.Left(5) ~== "SRMUS" || song.Left(6) ~== "EODMUS" || song.Left(6) ~== "WFDMUS") { return ""; }
 
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
 		if (family == "") { family = "SR"; }
+		if (family == "WFD")
+		{
+			// WOLFDOOM.WFD keeps the Wolf3D AUDIOT order (STARTMUSIC 261).
+			static const String names[] = { "CORNER", "DUNGEON", "WARMARCH", "GETTHEM", "HEADACHE", "HITLWLTZ", "INTROCW3", "NAZI_NOR", "NAZI_OMI", "POW", "SALUTE", "SEARCHN", "SUSPENSE", "VICTORS", "WONDERIN", "FUNKYOU", "ENDLEVEL", "GOINGAFT", "PREGNANT", "ULTIMATE", "NAZI_RAP", "ZEROHOUR", "TWELFTH", "ROSTER", "URAHERO", "VICMARCH", "PACMAN" };
+			song = song.MakeUpper();
+			if (song == "INTRO") { song = "NAZI_NOR"; }
+			for (int i = 0; i < names.Size(); i++) { if (song == names[i]) { return String.Format("WFDMUS%02i", i); } }
+			return "WFDMUS14";
+		}
 		bool eod = family == "EOD";
 
 		int n = eod ? 2 : 3; // menu
@@ -90,12 +122,16 @@ class AReyePGame
 		return String.Format(eod ? "EODMUS%02i" : "SRMUS%02i", n);
 	}
 
-	// Where Wolf3D fills with its teal, MCS's games show their rocky backdrop
-	// (VGAGRAPH 3, the menus' MENUBLUE): tiled over the given screen rectangle.
-	// False outside the AReyeP games, so the caller fills as before.
+	// WFD fills the play surround grey. MCS's games show their rocky backdrop
+	// (VGAGRAPH 3, the menus' MENUBLUE) where Wolf3D fills with teal.
 	static ui bool DrawBackdrop(int x, int y, int w, int h)
 	{
-		if (!MenuFamily() && g_sod >= 0) { return false; } // g_sod < 0: the game picker, all AReyeP games
+		if (CurrentFamily() == "WFD" && !InPicker())
+		{
+			if (w > 0 && h > 0) { Screen.Dim(0x383838, 1.0, x, y, w, h); }
+			return true;
+		}
+		if (!MenuFamily() && !InPicker()) { return false; }
 		if (w <= 0 || h <= 0) { return true; }
 
 		TextureID tex = TexMan.CheckForTexture("MENUBLUE", TexMan.Type_Any);
@@ -111,16 +147,23 @@ class AReyePGame
 		return true;
 	}
 
+	// The game picker (or no game picked yet) is dressed as the AReyeP games,
+	// whichever game was picked last (Wolfendoom keeps the TC's Wolf3D look)
+	static ui bool InPicker()
+	{
+		return g_sod < 0 || Menu.GetCurrentMenu() is "GameMenu";
+	}
+
 	// Menu pictures: End of Destiny's own (EOD_<name>, tools/assets.py) while
 	// it's the game, else the TC's names (SR's art in the AReyeP data)
 	static clearscope TextureID MenuTex(String name, int usetype = TexMan.Type_Any)
 	{
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
-		if (family == "EOD")
+		if (family == "EOD" || family == "WFD")
 		{
-			TextureID eod = TexMan.CheckForTexture("EOD_" .. name, usetype);
-			if (eod.IsValid()) { return eod; }
+			TextureID own = TexMan.CheckForTexture((family == "EOD" ? "EOD_" : "WD_") .. name, usetype);
+			if (own.IsValid()) { return own; }
 		}
 
 		return TexMan.CheckForTexture(name, usetype);
@@ -141,7 +184,7 @@ class AReyePGame
 	// False outside the games.
 	static ui bool, Color, Color, Color WindowColors()
 	{
-		if (!MenuFamily() && g_sod >= 0) { return false, 0, 0, 0; }
+		if (!MenuFamily() && !InPicker()) { return false, 0, 0, 0; }
 		return true, 0x2C2C2C, 0x404040, 0x707070;
 	}
 

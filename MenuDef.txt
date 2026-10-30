@@ -12,13 +12,14 @@ ListMenu "GameMenu"
 
 	Position 72, 32
 
-	Box 308, 104, -8
+	Box 308, 133, -8
 
 	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
 
 	GameSelection "Spear Resurrection", "s", "GAME_SR", "SR1"
 	GameSelection "SR: New Maps", "n", "GAME_SR", "SR2"
 	GameSelection "End of Destiny", "d", "GAME_EOD", "EOD"
+	GameSelection "Wolfendoom", "w", "GAME_WFD", "WFD"
 
 	Class "GameMenu"
 }
@@ -33,7 +34,7 @@ ListMenu "MainMenu"
 
 	Box 178, 150, 0 // Was 136 high; added height due to always showing 'End Game'
 
-	TextItem "$M_NEW", "n", "PlayerclassMenu"
+	TextItem "$M_NEW", "n", "AReyePNewGame"
 	TextItem "$M_SOUND", "s", "SoundOptions"
 	TextItem "$M_OPTIONS", "c", "TCOptions"
 	WolfMPTextItem "$MNU_PLAYERSETUP", "p", "WolfNewPlayerMenu"
@@ -103,4 +104,66 @@ OptionMenu "TCOptions"
 	SafeCommand	"$M_OPTIONSRESET",			"g_resetdefaults"
 	SafeCommand	"$M_OPTIONSSAVE",			"writeini"
 	Command "$OPTMNU_CONSOLE",				"menuconsole"
+}
+
+// Wolfendoom's episodes (Scripts/AReyeP/WDMenus.zs; names from WOLFDOOM.EXE)
+ListMenu "WDEpisodeMenu"
+{
+	NetgameMessage "$NETGAME"
+	Linespacing 26
+	Selector "M_SEL1", -88, 0
+
+	Font "BigFont", "WolfMenuYellowBright"
+	Title 160, 0, "$M_EPIS"
+
+	Position 72, 23
+
+	Box 308, 162, 0
+
+	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+
+	WDEpisode "UAC Site 1\nThe First Encounter", "1", 1
+	WDEpisode "UAC Site 2\nThe Baron's Realm", "2", 2
+	WDEpisode "UAC Site 3\nDeathtraps", "3", 3
+	WDEpisode "UAC Site 4\nFire of the Archvile", "4", 4
+	WDEpisode "UAC Site 5\nDoom Blitzkrieg", "5", 5
+	WDEpisode "UAC Site 6\nThe Ultimate Challenge", "6", 6
+
+	Class "WDEpisodeMenu"
+}
+
+OptionMenu "Episode51End"
+{
+	Caption "Data/WFD/End1.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode52End"
+{
+	Caption "Data/WFD/End2.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode53End"
+{
+	Caption "Data/WFD/End3.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode54End"
+{
+	Caption "Data/WFD/End4.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode55End"
+{
+	Caption "Data/WFD/End5.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode56End"
+{
+	Caption "Data/WFD/End6.txt"
+	Class "WDFinale"
 }
