@@ -199,6 +199,29 @@ Codes the stock TC tables don't define, by game:
    menus over the rock backdrop, EoD's own menu art, Read This!, MCS's intro
    screens; packaging as the TC IWAD + `AReyeP.pk3` + the player's own data.
 
+## Wolfendoom engine check
+
+`WOLFDOOM.WFD` is an unpacked DOS EXE with Borland procedure and data symbols.
+Offsets below are in the loaded image (file offset minus `0x2a00`). Compared
+its tables and selected routines with [id Software's Wolf3D source](https://github.com/id-Software/wolf3d/tree/master/WOLFSRC)
+and the TC's Wolf3D actors. No Wolfendoom gameplay differences were found:
+
+| Area | EXE evidence | Result |
+|---|---|---|
+| Enemy health | `starthitpoints` `0x3b4c2` (88 words) | Byte-for-byte stock, all four skills and 22 enemy slots. Hitler's human form uses the stock 500/700/800/900 HP (`A_HitlerMorph`; `SpawnHitler` at `0x14cb5` uses the table for the mech). |
+| Enemy movement and reactions | `SpawnStand` `0x13ed8`, `SpawnPatrol` `0x14139`, `FirstSighting` `0x11b26`, `SightPlayer` `0x11d74` | Stock patrol speeds (512, dog 1500), chase multipliers and class-dependent sight delays. |
+| Enemy attacks | `T_Shoot` `0x154c6`, `T_Bite` `0x1567e`, `T_Projectile` `0x13d1c` | Stock distance-based hit chances and damage, including the dog bite and boss projectiles. |
+| Kills and drops | `KillActor` `0x1144b`, `DamageActor` `0x116fc` | Stock points, clip/weapon/key drops, pain reactions, and double damage before an enemy enters attack mode. |
+| Player and weapons | `attackinfo` `0x3b2a4` (224 bytes), `KnifeAttack` `0x12b65`, `GunAttack` `0x12be2`, `TakeDamage` `0x121b2`, `NewGame` `0x4bff` | Stock four-weapon firing sequence and damage; Baby difficulty quarters player damage. New game starts with 100 health, 8 rounds, pistol, 3 lives. |
+| Pickups and lives | `GetBonus` `0x123cc`, `GiveWeapon` `0x1233d`, `GiveAmmo` `0x12382`, `GiveExtraMan` `0x1226c`, `GivePoints` `0x122a3` | Stock: clips 8/dropped clips 4, weapons 6, ammo cap 99; health 25/10/4/1, full heal plus 25 ammo and a life; treasure 100/500/1000/5000, extra life every 40,000 points, life cap 9. |
+| Cheats and debug | `CheckKeys` `0xd6bf` | Stock M-L-I and B-A-T combinations, Backspace+Left Shift+Alt debug enable, and `goobers`; the TC's stock cheat handling remains enabled for WFD. |
+
+The gameplay procedure names in the EXE's symbol table all occur in the
+released Wolf3D source; none identifies a new MCS subsystem. This is a
+targeted comparison of the named tables and routines, not a byte-level audit
+of every EXE function. WFD therefore uses the TC's existing Wolf3D rules;
+no WFD-specific gameplay overrides are needed.
+
 ## Dev setup
 
 - Engine: the TC targets ZScript 5.0 → **UZDoom 5.x** (AUR `uzdoom-bin`).
