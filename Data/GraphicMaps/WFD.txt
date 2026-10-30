@@ -713,7 +713,10 @@ WFD // Wolfendoom: Wolfenstein 3D's layout
 		"BASKA0";
 		"HLTHD0";
 		"HLTHE0";
-		"CCLIA0";
+		28
+		{
+			"CCLIA0" { NoShadowMask; }
+		}
 		"CMGUP0";
 		"CCGUP0";
 		"TRECA0";

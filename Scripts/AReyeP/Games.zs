@@ -122,11 +122,15 @@ class AReyePGame
 		return String.Format(eod ? "EODMUS%02i" : "SRMUS%02i", n);
 	}
 
-	// Where Wolf3D fills with its teal, MCS's games show their rocky backdrop
-	// (VGAGRAPH 3, the menus' MENUBLUE): tiled over the given screen rectangle.
-	// False outside the AReyeP games, so the caller fills as before.
+	// WFD fills the play surround grey. MCS's games show their rocky backdrop
+	// (VGAGRAPH 3, the menus' MENUBLUE) where Wolf3D fills with teal.
 	static ui bool DrawBackdrop(int x, int y, int w, int h)
 	{
+		if (CurrentFamily() == "WFD" && !InPicker())
+		{
+			if (w > 0 && h > 0) { Screen.Dim(0x383838, 1.0, x, y, w, h); }
+			return true;
+		}
 		if (!MenuFamily() && !InPicker()) { return false; }
 		if (w <= 0 || h <= 0) { return true; }
 

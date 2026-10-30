@@ -214,8 +214,9 @@ class AReyePExtension : GameExtension
 	override int FadeColor(String game) { return MCSLook(game) ? 0x0 : -1; } // the rocky backdrop covers the screen; MCS fades through black
 
 	// MCS's intermission fills with palette 0x1D, a dark grey, where Wolf3D has teal
-	// (LevelCompleted's VWB_Bar: SR image 0xa04e, EoD the same)
-	override int IntermissionColor(String game) { return MCSLook(game) ? 0x383838 : -1; }
+	// (LevelCompleted's VWB_Bar: SR image 0xa04e, EoD the same). Wolfendoom
+	// uses the same grey around its exit screen.
+	override int IntermissionColor(String game) { return MCSLook(game) || AReyePGame.Family(game) == "WFD" ? 0x383838 : -1; }
 
 	override Name FinaleMenu(String game) { return AReyePGame.FinaleMenu(); }
 
@@ -270,17 +271,17 @@ class AReyePExtension : GameExtension
 		PlayerInfo player = sb.CPlayer;
 		if (points < 0) { points = sb.GetAmount("Score"); }
 		if (lives < 0) { lives = LifeHandler.GetLives(player.mo); }
-		DrawNumber(sb, Slot(map) % 10 + 1, 16, 2, "WD");
-		DrawNumber(sb, points % 1000000, 48, 6, "WD");
-		DrawNumber(sb, max(lives, 0), 112, 1, "WD");
-		DrawNumber(sb, player.health, 168, 3, "WD");
-		DrawNumber(sb, player.mo.CountInv("WolfClip"), 208, 3, "WD");
+		DrawNumber(sb, Slot(map) % 10 + 1, 16, 2, "WD", 176);
+		DrawNumber(sb, points % 1000000, 48, 6, "WD", 176);
+		DrawNumber(sb, max(lives, 0), 112, 1, "WD", 176);
+		DrawNumber(sb, player.health, 168, 3, "WD", 176);
+		DrawNumber(sb, player.mo.CountInv("WolfClip"), 216, 2, "WD", 176);
 		sb.DrawMugShot(136, 164, face:"WDF", accuracy:7);
-		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (241, 167), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
-		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (241, 183), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (240, 164), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (240, 180), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
 		Weapon w = player.ReadyWeapon;
 		String pic = w is "WolfKnife" ? "WDKNIFE" : w is "WolfMachineGun" ? "WDMGUN" : w is "WolfChaingun" ? "WDCGUN" : "WDPISTOL";
-		sb.DrawImage(pic, (256, 167), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(pic, (256, 168), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
 	}
 
 	override bool DrawStatusBar(String game, ClassicStatusBar sb, int points, int lives)
@@ -357,13 +358,13 @@ class AReyePExtension : GameExtension
 	}
 
 	// Right-aligned digits in a box of 'width' characters starting at bar column x
-	ui void DrawNumber(ClassicStatusBar sb, int value, int x, int width, String prefix)
+	ui void DrawNumber(ClassicStatusBar sb, int value, int x, int width, String prefix, int y = 174)
 	{
 		String digits = String.Format("%i", max(value, 0));
 		int len = min(digits.Length(), width);
 		for (int c = 0; c < len; c++)
 		{
-			sb.DrawImage(String.Format("%sNUM%c", prefix, digits.ByteAt(digits.Length() - len + c)), (x + (width - len + c) * 8, 174), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+			sb.DrawImage(String.Format("%sNUM%c", prefix, digits.ByteAt(digits.Length() - len + c)), (x + (width - len + c) * 8, y), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
 		}
 	}
 
