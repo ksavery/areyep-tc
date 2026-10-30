@@ -1,7 +1,7 @@
 # AReyeP TC
 
-Spear Resurrection (original + 2011 new mapset) and Spear: End of Destiny,
-playable in UZDoom as a mod for AFADoomer's [Wolf3D TC 3.0](https://github.com/AFADoomer/Wolf3D-TC-3.0).
+Spear Resurrection (original + 2011 new mapset), Spear: End of Destiny and
+Wolfendoom, playable in UZDoom as a mod for AFADoomer's [Wolf3D TC 3.0](https://github.com/AFADoomer/Wolf3D-TC-3.0).
 
 **Setup:** [Windows](#setup-on-windows) · [Linux](#setup-on-linux)
 
@@ -29,7 +29,7 @@ some-folder/
 ├── Wolf3D-TC-3.0/          ← the TC (AFADoomer's repo)
 └── areyep-tc/              ← this repo
     ├── run/                ← the game folder (not in git; created during setup)
-    │   ├── VSWAP.SR  GAMEMAPS.SR1  …  GAMEMAPS.EOD  …   ← your game files
+    │   ├── VSWAP.SR  GAMEMAPS.SR1  …  GAMEMAPS.WFD  …   ← your game files
     │   ├── AReyeP-data.pk3     ← converted from them (step 3)
     │   ├── Wolf3D-TC.ipk3      ← built from ../Wolf3D-TC-3.0 (step 4)
     │   └── AReyeP.pk3          ← built from this repo (step 4)
@@ -157,8 +157,9 @@ from the downloads:
 ## Your game files
 
 Copy these files from AReyeP's downloads into `run`, renamed as shown. Both
-SR mapsets use `.RIP` and End of Destiny uses `.WL6` (which would clash with
-Wolfenstein 3D), so each game gets an extension of its own:
+SR mapsets use `.RIP`, and End of Destiny and Wolfendoom use `.WL6` (which
+would clash with Wolfenstein 3D and each other), so each game gets an
+extension of its own:
 
 | Download | Files | Copy as |
 |---|---|---|
@@ -167,6 +168,8 @@ Wolfenstein 3D), so each game gets an extension of its own:
 | `SRSDL2.ZIP` (Spear Resurrection SDL, 2011 maps) | `GAMEMAPS.RIP` `MAPHEAD.RIP` `AUDIOHED.RIP` `AUDIOT.RIP` `VGAHEAD.RIP` `VGADICT.RIP` `VGAGRAPH.RIP` | the same names with `.SR2` |
 | `EOD_112.ZIP` (End of Destiny v1.12, editor's version) | `VSWAP.WL6` | `VSWAP.EOD` |
 | | `GAMEMAPS.WL6` `MAPHEAD.WL6` `AUDIOHED.WL6` `AUDIOT.WL6` `VGAHEAD.WL6` `VGADICT.WL6` `VGAGRAPH.WL6` `SPEAR.EXE` | the same names with `.EOD` |
+| `Wolfdoom.zip` (Wolfendoom, 2001) | `VSWAP.WL6` `GAMEMAPS.WL6` `MAPHEAD.WL6` `AUDIOHED.WL6` `AUDIOT.WL6` `VGAHEAD.WL6` `VGADICT.WL6` `VGAGRAPH.WL6` `Helpart.wl6` `Endart1.wl6` … `Endart6.wl6` | the same names with `.WFD` |
+| | `Wolfdoom.exe` | `WOLFDOOM.WFD` |
 
 The stage script (step 2) does the same copying for you; it also checks the
 VSWAPs and blanks the unused placeholder map slots in each MAPHEAD.
@@ -203,15 +206,16 @@ The mod and its tools (everything in this repo) are licensed under the
 [GNU General Public License v3.0](LICENSE).
 
 That covers this repo only. The Wolf3D TC it plugs into is AFADoomer's, under
-the MIT license in its source files, and the games' data (Spear Resurrection
-and End of Destiny) belongs to AReyeP and MCS: it isn't included here, and
-you supply your own copies.
+the MIT license in its source files, and the games' data (Spear Resurrection,
+End of Destiny and Wolfendoom) belongs to AReyeP and MCS: it isn't included
+here, and you supply your own copies.
 
 ## Credits
 
 - **Spear Resurrection** (2001) and **Spear: End of Destiny** (2004/2006) —
   AReyeP (Steve Walley) and MCS Amsterdam, with BrotherTank; https://www.areyep.com/.
   This project uses their games as its base, with credit, as AReyeP asked.
+- **Wolfendoom** (2001) — AReyeP, with MCS Amsterdam.
 - Spear Resurrection SDL / 10th Anniversary Edition — Andy Nonymous (SDL code), Ack (two new levels).
 - EOD4SDL recreation (behaviour reference) — Kyle Albert.
 - Wolf3D TC 3.0 — AFADoomer; see `Credits.txt` in the TC for its own credits.
