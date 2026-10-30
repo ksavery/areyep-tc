@@ -12,7 +12,7 @@
 //   +areyep_tile "x,y;x,y"  report those tiles' sector heights and codes
 //   +areyep_cheat N    apply MCSCheats cheat N two seconds in
 //   +areyep_fire 1     hold fire from a second in
-//   +areyep_shoot "Class"  fire that projectile from the player two seconds in, at the nearest monster
+//   +areyep_shoot "Class"  fire that projectile from the player every two seconds, at the nearest live monster
 //   +areyep_shootowner "Class"  ... owned by a new actor of that class instead of the player
 //   +areyep_give "A,@B"  give the player these a few tics into the level (@: as if walked onto)
 //   +areyep_playmusic SONG  play this song four seconds after startup
@@ -131,19 +131,23 @@ class AReyePDevProbe : StaticEventHandler
 		}
 
 		CVar shootcv = CVar.FindCVar("areyep_shoot");
-		if (shootcv && shootcv.GetString().length() && leveltics == 70 && players[0].mo)
+		if (shootcv && shootcv.GetString().length() && leveltics > 0 && leveltics % 70 == 0 && players[0].mo)
 		{
 			Class<Actor> cls = shootcv.GetString();
-			// Aimed at the nearest monster, if any is close (else straight ahead)
+			// Aimed at the nearest live monster if one is close, else the nearest
+			// body (to see projectiles pass it), else straight ahead
 			Actor pmo = players[0].mo;
 			double aim = pmo.angle;
-			Actor nearest;
+			Actor nearest, body;
 			let it = ThinkerIterator.Create("Actor");
 			Actor a;
 			while (a = Actor(it.Next()))
 			{
-				if (a.bIsMonster && a.health > 0 && pmo.Distance2D(a) < 512 && (!nearest || pmo.Distance2D(a) < pmo.Distance2D(nearest))) { nearest = a; }
+				if (!a.bIsMonster || pmo.Distance2D(a) >= 512) { continue; }
+				if (a.health > 0) { if (!nearest || pmo.Distance2D(a) < pmo.Distance2D(nearest)) { nearest = a; } }
+				else if (!body || pmo.Distance2D(a) < pmo.Distance2D(body)) { body = a; }
 			}
+			if (!nearest) { nearest = body; }
 			if (nearest) { aim = pmo.AngleTo(nearest); }
 
 			Actor missile = cls ? Actor.Spawn(cls, pmo.Vec3Angle(32, aim, 0)) : null;
