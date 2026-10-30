@@ -134,6 +134,7 @@ class AReyePExtension : GameExtension
 	// doors (90 + 2 * 6) keep the old ones, wooden doors creak (SNDSEQ)
 	override int DoorSound(String game, PolyobjectHandle po, bool pushwall)
 	{
+		if (AReyePGame.Family(game) == "WFD") { return pushwall ? 10 : 8; }
 		if (AReyePGame.Family(game) != "EOD") { return -1; }
 		if (pushwall) { return 7; }
 
@@ -204,7 +205,7 @@ class AReyePExtension : GameExtension
 
 	override bool MenuBox(String game, Menu current) { return !(MCSLook(game) && current is "SkillMenu"); }
 
-	override bool ReadThis(String game) { return MCSLook(game); } // MCS's games have it back
+	override bool ReadThis(String game) { return MCSLook(game) || AReyePGame.Family(game) == "WFD"; }
 
 	override int DisabledColor(String game) { return MCSLook(game) ? Font.FindFontColor("AReyePMenuDisable") : -1; }
 
@@ -225,7 +226,13 @@ class AReyePExtension : GameExtension
 
 	override String IntroGraphic(String game, String which)
 	{
-		if (AReyePGame.Family(game) == "WFD") { return ""; } // the TC's for now
+		if (AReyePGame.Family(game) == "WFD")
+		{
+			if (which == "startup" || which == "startup2" || which == "title") { return "WDTITLE"; }
+			if (which == "warning") { return "WDSTART"; }
+			if (which == "credits") { return "WDCREDIT"; }
+			return "";
+		}
 
 		if (AReyePGame.Family(game) == "EOD")
 		{
@@ -256,10 +263,32 @@ class AReyePExtension : GameExtension
 
 	// Status bar and messages ---------------------------------------------------------
 
+	ui void DrawWDBar(ClassicStatusBar sb, ParsedMap map, int points, int lives)
+	{
+		// Wolfendoom's VGAGRAPH 86, 91-132 uses Wolf3D's 320x40 bar layout.
+		sb.DrawImage("WDBAR", (160, 198), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_CENTER_BOTTOM);
+		PlayerInfo player = sb.CPlayer;
+		if (points < 0) { points = sb.GetAmount("Score"); }
+		if (lives < 0) { lives = LifeHandler.GetLives(player.mo); }
+		DrawNumber(sb, Slot(map) % 10 + 1, 16, 2, "WD");
+		DrawNumber(sb, points % 1000000, 48, 6, "WD");
+		DrawNumber(sb, max(lives, 0), 112, 1, "WD");
+		DrawNumber(sb, player.health, 168, 3, "WD");
+		DrawNumber(sb, player.mo.CountInv("WolfClip"), 208, 3, "WD");
+		sb.DrawMugShot(136, 164, face:"WDF", accuracy:7);
+		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (241, 167), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (241, 183), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		Weapon w = player.ReadyWeapon;
+		String pic = w is "WolfKnife" ? "WDKNIFE" : w is "WolfMachineGun" ? "WDMGUN" : w is "WolfChaingun" ? "WDCGUN" : "WDPISTOL";
+		sb.DrawImage(pic, (256, 167), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+	}
+
 	override bool DrawStatusBar(String game, ClassicStatusBar sb, int points, int lives)
 	{
 		ParsedMap map = MapHandler.GetCurrentMap();
-		if (!map || !MCSLook(game)) { return false; }
+		if (!map) { return false; }
+		if (AReyePGame.Family(game) == "WFD") { DrawWDBar(sb, map, points, lives); return true; }
+		if (!MCSLook(game)) { return false; }
 
 		DrawBar(sb, map, points, lives, AReyePGame.Family(game) == "EOD" ? "EOD" : "SR");
 		return true;

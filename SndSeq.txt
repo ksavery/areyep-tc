@@ -1,4 +1,29 @@
 // End of Destiny's doors and pushwalls (AReyePExtension.DoorSound picks these for EOD maps)
+
+:WDDOOROPEN
+	Volume 127
+	PlayUntilDone wd/sound18
+	NoStopCutoff
+end
+
+:WDDOORCLOSE
+	Volume 127
+	PlayUntilDone wd/sound19
+	NoStopCutoff
+end
+
+[WDDOOR
+   Door 8
+   0 WDDOOROPEN
+   1 WDDOORCLOSE
+]
+
+:WDPUSHWALL
+	Door 10
+	Volume 127
+	PlayUntilDone wd/sound46
+	NoStopCutoff
+end
 :EODDOOROPEN
 	Volume 127
 	PlayUntilDone eod/opennormaldr

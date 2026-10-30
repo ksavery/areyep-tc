@@ -63,3 +63,13 @@ class ListMenuItemWDEpisode : ListMenuItemTextItem
 		return Super.Activate();
 	}
 }
+
+// The TC opens Episode51End through Episode56End after Wolfendoom's bosses.
+class WDFinale : FinaleMenu
+{
+	override void Init(Menu parent, OptionMenuDescriptor desc)
+	{
+		Super.Init(parent, desc);
+		border = TexMan.CheckForTexture("WD_BORDER", TexMan.Type_Any);
+	}
+}

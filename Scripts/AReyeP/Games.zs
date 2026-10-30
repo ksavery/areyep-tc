@@ -96,12 +96,20 @@ class AReyePGame
 	// and high score song, Victory's, the ending's. Before a game is picked, SR's.
 	static clearscope String ModMusic(String song)
 	{
-		if (song == "" || song.Left(5) ~== "SRMUS" || song.Left(6) ~== "EODMUS") { return ""; }
+		if (song == "" || song.Left(5) ~== "SRMUS" || song.Left(6) ~== "EODMUS" || song.Left(6) ~== "WFDMUS") { return ""; }
 
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
 		if (family == "") { family = "SR"; }
-		if (family == "WFD") { return ""; } // Wolfendoom's own music comes with its assets; until then the TC's
+		if (family == "WFD")
+		{
+			// WOLFDOOM.WFD keeps the Wolf3D AUDIOT order (STARTMUSIC 261).
+			static const String names[] = { "CORNER", "DUNGEON", "WARMARCH", "GETTHEM", "HEADACHE", "HITLWLTZ", "INTROCW3", "NAZI_NOR", "NAZI_OMI", "POW", "SALUTE", "SEARCHN", "SUSPENSE", "VICTORS", "WONDERIN", "FUNKYOU", "ENDLEVEL", "GOINGAFT", "PREGNANT", "ULTIMATE", "NAZI_RAP", "ZEROHOUR", "TWELFTH", "ROSTER", "URAHERO", "VICMARCH", "PACMAN" };
+			song = song.MakeUpper();
+			if (song == "INTRO") { song = "NAZI_NOR"; }
+			for (int i = 0; i < names.Size(); i++) { if (song == names[i]) { return String.Format("WFDMUS%02i", i); } }
+			return "WFDMUS14";
+		}
 		bool eod = family == "EOD";
 
 		int n = eod ? 2 : 3; // menu
@@ -141,10 +149,10 @@ class AReyePGame
 	{
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
-		if (family == "EOD")
+		if (family == "EOD" || family == "WFD")
 		{
-			TextureID eod = TexMan.CheckForTexture("EOD_" .. name, usetype);
-			if (eod.IsValid()) { return eod; }
+			TextureID own = TexMan.CheckForTexture((family == "EOD" ? "EOD_" : "WD_") .. name, usetype);
+			if (own.IsValid()) { return own; }
 		}
 
 		return TexMan.CheckForTexture(name, usetype);

@@ -15,4 +15,6 @@ version "5.0.0"
 #include "Scripts/AReyeP/EoDWeather.zs"			// End of Destiny snow, outdoors only
 #include "Scripts/AReyeP/EoDMenus.zs"			// End of Destiny story screens and ending
 #include "Scripts/AReyeP/WDMenus.zs"			// Wolfendoom's episode menu
+#include "Scripts/AReyeP/WDLevels.zs"			// Wolfendoom's actor sounds
+#include "Scripts/AReyeP/WDStats.zs"			// Wolfendoom's intermission art
 #include "Scripts/AReyeP/EoDStatics.zs"			// End of Destiny statics (generated)

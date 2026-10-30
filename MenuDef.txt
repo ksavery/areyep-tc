@@ -19,7 +19,7 @@ ListMenu "GameMenu"
 	GameSelection "Spear Resurrection", "s", "GAME_SR", "SR1"
 	GameSelection "SR: New Maps", "n", "GAME_SR", "SR2"
 	GameSelection "End of Destiny", "d", "GAME_EOD", "EOD"
-	GameSelection "Wolfendoom", "w", "GAME_Wolf", "WFD"
+	GameSelection "Wolfendoom", "w", "GAME_WFD", "WFD"
 
 	Class "GameMenu"
 }
@@ -130,4 +130,40 @@ ListMenu "WDEpisodeMenu"
 	WDEpisode "UAC Site 6\nThe Ultimate Challenge", "6", 6
 
 	Class "WDEpisodeMenu"
+}
+
+OptionMenu "Episode51End"
+{
+	Caption "Data/WFD/End1.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode52End"
+{
+	Caption "Data/WFD/End2.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode53End"
+{
+	Caption "Data/WFD/End3.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode54End"
+{
+	Caption "Data/WFD/End4.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode55End"
+{
+	Caption "Data/WFD/End5.txt"
+	Class "WDFinale"
+}
+
+OptionMenu "Episode56End"
+{
+	Caption "Data/WFD/End6.txt"
+	Class "WDFinale"
 }
