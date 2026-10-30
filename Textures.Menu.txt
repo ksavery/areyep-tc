@@ -1,0 +1,3 @@
+// Spear's menu cursor with its blue backing clear (and the glow grey) for the AReyeP menus
+Texture M_SSEL1, 24, 16 { Offset 0, 3 Patch "Patches/Menu/MCSSEL1.png", 0, 0 { Translation "144:157=17:30" } }
+Texture M_SSEL2, 24, 16 { Offset 0, 3 Patch "Patches/Menu/MCSSEL2.png", 0, 0 { Translation "144:157=17:30" } }

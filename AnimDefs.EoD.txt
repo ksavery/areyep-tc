@@ -1,0 +1,25 @@
+// End of Destiny animated walls (eod4sdl wl_draw.cpp): the fireplace (0x4E)
+// cycles tiles 0x4E-0x51 every 16 tics, the hell wall (0x57) 0x57-0x59 every 64
+// (70 Hz; halved here). Pages are (tile - 1) * 2, + 1 for the dark side.
+
+texture "EoD/Wall0154"
+	pic "EoD/Wall0154" tics 8
+	pic "EoD/Wall0156" tics 8
+	pic "EoD/Wall0158" tics 8
+	pic "EoD/Wall0160" tics 8
+
+texture "EoD/Wall0155"
+	pic "EoD/Wall0155" tics 8
+	pic "EoD/Wall0157" tics 8
+	pic "EoD/Wall0159" tics 8
+	pic "EoD/Wall0161" tics 8
+
+texture "EoD/Wall0172"
+	pic "EoD/Wall0172" tics 32
+	pic "EoD/Wall0174" tics 32
+	pic "EoD/Wall0176" tics 32
+
+texture "EoD/Wall0173"
+	pic "EoD/Wall0173" tics 32
+	pic "EoD/Wall0175" tics 32
+	pic "EoD/Wall0177" tics 32

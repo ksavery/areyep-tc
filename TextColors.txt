@@ -1,0 +1,2 @@
+// The disabled menu items of the AReyeP games: grey on their grey windows
+AReyePMenuDisable { #646464 #646464 }

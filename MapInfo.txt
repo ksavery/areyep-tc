@@ -1,0 +1,24 @@
+gameinfo
+{
+	AddEventHandlers = "AReyePDevProbe", "MCSRules", "SRRules", "EoDRules", "EoDLevelRules", "EoDTextLog", "EoDWeather"
+}
+
+// The TC's defaults (MAPINFO's defaultmap only covers its own lump)
+defaultmap
+{
+	NoCrouch
+	NoJump
+	No_Grinding_Polyobj
+	Cluster = -1
+	sky1 = "CEILING"
+}
+
+// The TC's shared map for parsed GAMEMAPS levels, plus End of Destiny's sky and shading
+map Level "Wolfenstein 3D"
+{
+	levelnum = -1
+	next = Level
+	secretnext = Level
+	doublesky // End of Destiny's clouds (sky1) drift over its stars (sky2)
+	fogdensity = 400 // End of Destiny's distance shading (EoDLevelRules.Shade); only its fogged sectors use it
+}

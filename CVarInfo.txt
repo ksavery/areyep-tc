@@ -1,0 +1,21 @@
+user noarchive int areyep_probe = 0; // dev: print engine state once a second
+server noarchive string areyep_startmap = ""; // "DATAFILE:Map_Name" to start directly into a parsed map
+user noarchive int areyep_report = 0; // dev: report unmapped codes and spawns once a parsed map loads
+user noarchive int areyep_switchtest = 0; // dev: throw every End of Destiny switch a second into the level
+user noarchive string areyep_summon = ""; // dev: classes to line up in front of the player
+user noarchive int areyep_summonlive = 0; // dev: summoned classes act instead of standing frozen
+user noarchive string areyep_watch = ""; // dev: classes to log state/health/distance of once a second
+user noarchive int areyep_wake = 0; // dev: a second in, every enemy has seen the player
+user noarchive string areyep_remove = ""; // dev: three seconds in, remove every actor of these classes
+user noarchive string areyep_goto = ""; // dev: "x,y,angle" tile to stand the player on
+user noarchive string areyep_push = ""; // dev: "x,y,byteangle" pushwall to push and report on
+user noarchive string areyep_tile = ""; // dev: "x,y;x,y" tiles to report heights and codes of
+user noarchive int areyep_cheat = 0; // dev: apply AReyeP/MCS cheat N (MCSCheats) two seconds in; -N through the cheat keys' network event
+user noarchive int areyep_fire = 0; // dev: hold fire from a second into the level
+user noarchive string areyep_shootowner = ""; // dev: class to spawn as the areyep_shoot projectile's owner (default the player)
+user noarchive string areyep_shoot = ""; // dev: projectile class to fire from the player two seconds in
+user noarchive string areyep_give = ""; // dev: items to give the player a few tics into the level
+user noarchive string areyep_at = ""; // dev: "tic:command,..." console commands to run at those gametics
+user noarchive string areyep_playmusic = ""; // dev: play this song four seconds after startup
+user noarchive int areyep_hurt = 0; // dev: two seconds in, deal this much damage to each watched actor
+user noarchive int areyep_exit = 0; // dev: 1/2 = take the normal/secret exit shortly after each level loads

@@ -1,0 +1,249 @@
+// Spear Resurrection map codes (shared by the SR1 and SR2 mapsets).
+// Names: docs/reference/sr-mapdata.txt. Door art: VSWAP.SR pages 178-199.
+SR
+{
+	0
+	{
+		Walls
+		{
+			Default
+			{
+				Tiles = 0x01-0x59;
+				Pattern = "SR/Wall%04i";
+				Flags = Wall;
+			}
+
+			0x10
+			{
+				Flags = Directional;
+			}
+
+			// Elevator Active (exit switch)
+			0x15
+			{
+				Special = 80, 10;
+				Flags = Directional;
+			}
+
+			// Elevator Inactive
+			0x16
+			{
+				Flags = Directional;
+			}
+
+			// Not a map code; supplies the door frame texture
+			0xFF
+			{
+				Pattern = "SR/Wall0194", "SR/Wall0195";
+				Flags = DoorFrame;
+			}
+		}
+
+		Doors
+		{
+			Default
+			{
+				Tiles = 0x5A, 0x5B;
+				Pattern = "SR/Wall0192", "SR/Wall0193";
+				Flags = Door;
+			}
+
+			// Rusted and wooden doors have their own frames (MCS's door side code:
+			// DOORWALL-6 / DOORWALL-8 instead of DOORWALL+2)
+			Rusted
+			{
+				Default
+				{
+					Tiles = 0x66, 0x67;
+					Pattern = "SR/Wall0178", "SR/Wall0179";
+					Frame = "SR/Wall0186", "SR/Wall0187";
+					Flags = Door;
+				}
+			}
+
+			Wooden
+			{
+				Default
+				{
+					Tiles = 0x68, 0x69;
+					Pattern = "SR/Wall0182", "SR/Wall0183";
+					Frame = "SR/Wall0184", "SR/Wall0185";
+					Flags = Door;
+				}
+			}
+
+			Locked
+			{
+				Default
+				{
+					Tiles = 0x5C-0x63;
+					Pattern = "SR/Wall0198", "SR/Wall0199";
+					Flags = Door;
+				}
+
+				// Gold
+				0x5C
+				{
+					Pattern = "SR/Wall0190", "SR/Wall0191";
+					Key = 1;
+				}
+
+				0x5D
+				{
+					Pattern = "SR/Wall0190", "SR/Wall0191";
+					Key = 1;
+				}
+
+				// Bronze
+				0x5E
+				{
+					Pattern = "SR/Wall0188", "SR/Wall0189";
+					Key = 2;
+				}
+
+				0x5F
+				{
+					Pattern = "SR/Wall0188", "SR/Wall0189";
+					Key = 2;
+				}
+
+				// Blood
+				0x60
+				{
+					Key = 3;
+				}
+
+				0x61
+				{
+					Key = 3;
+				}
+
+				// Locked elevator (Elevator Key)
+				0x62
+				{
+					Pattern = "SR/Wall0180", "SR/Wall0181";
+					Key = 4;
+				}
+
+				0x63
+				{
+					Pattern = "SR/Wall0180", "SR/Wall0181";
+					Key = 4;
+				}
+			}
+
+			Elevator
+			{
+				Default
+				{
+					Tiles = 0x64, 0x65;
+					Pattern = "SR/Wall0196", "SR/Wall0197";
+					Flags = Door;
+				}
+			}
+		}
+	}
+
+	// Map things -> actor classes; codes not listed fall back to SD1/Default.
+	// Names: docs/reference/sr-objdata.txt
+	1
+	{
+		// Objects SR redefines in Spear's static slots
+		29 = "SRSmallMedkit";
+		46 = "SRDeathArtefact";
+		51 = "SRMk3";
+		56 = "SRArtefactLife";
+		// Statics SR added (Spear stops at 74)
+		75 = "SRMk4";
+		76 = "SRBloodKey";
+		77 = "SRElevatorKey";
+		78 = "SRLandmine";
+		79 = "SRBrokenColumn";
+		80 = "SRAmmo2";
+		81 = "SRStoneColumn";
+		82 = "SRChoppingTable";
+		83 = "SRBlackDiamond";
+		84 = "SRSmallRocks1";
+		85 = "SRSmallRocks2";
+		86 = "SRBloodySkeleton";
+		87 = "SRHangingPlant";
+		88 = "SRHitlerPedestal";
+		89 = "SRAmmo2Crate";
+		// Artefacts of Displacement and their destinations
+		100 = "SRTeleportArtefact";
+		101 = "SRTeleportDestination";
+		102 = "SRTeleportArtefact2";
+		103 = "SRTeleportDestination2";
+		// Suicide clones (Spear's dog codes, plus standing variants at 134-137)
+		134 = "SRSuicideClone", 1, 0, 0;
+		135 = "SRSuicideClone", 1, 90, 0;
+		136 = "SRSuicideClone", 1, 180, 0;
+		137 = "SRSuicideClone", 1, 270, 0;
+		138 = "SRSuicideClone", 1, 0, 1;
+		139 = "SRSuicideClone", 1, 90, 1;
+		140 = "SRSuicideClone", 1, 180, 1;
+		141 = "SRSuicideClone", 1, 270, 1;
+		174 = "SRSuicideClone", 3, 0, 1;
+		175 = "SRSuicideClone", 3, 90, 1;
+		176 = "SRSuicideClone", 3, 180, 1;
+		177 = "SRSuicideClone", 3, 270, 1;
+		210 = "SRSuicideClone", 4, 0, 1;
+		211 = "SRSuicideClone", 4, 90, 1;
+		212 = "SRSuicideClone", 4, 180, 1;
+		213 = "SRSuicideClone", 4, 270, 1;
+		// Wolf3D ghost slots and SR statics
+		224 = "SRGrimReaper";
+		225 = "SRYellowGhost";
+		226 = "SRBlinkingLight";
+		227 = "SRIndoorTorch";
+		228 = "SRDeadSuicideClone";
+		229 = "SRDeadSS";
+		230 = "SRDeadClone";
+		231 = "SRDeadOfficer";
+		260 = "SRExplodingDrum";
+		261 = "SROutdoorTorch";
+		262 = "SRAngelGhost";
+		263 = "SRBreakableColumn"; // MCS's, not the Lost Episodes one
+		264 = "SRBossGhost1";
+		265 = "SRBossGhost2";
+		266 = "SRBossGhost3";
+		267 = "SRBossGhost4";
+		268 = "SRBossGhost5";
+		269 = "SRBossGhost6";
+		270 = "SRPedestalHans";
+		271 = "SRPedestalGretel";
+		272 = "SRPedestalSchabbs";
+		273 = "SRPedestalFatface";
+		274 = "SRPedestalWilhelm";
+		275 = "SRPedestalTrans";
+		276 = "SREmptyPedestalHans";
+		277 = "SREmptyPedestalGretel";
+		278 = "SREmptyPedestalSchabbs";
+		279 = "SREmptyPedestalFatface";
+		280 = "SREmptyPedestalWilhelm";
+		281 = "SREmptyPedestalTrans";
+		282 = "SRGodModeArtefact";
+		283 = "SRGoodBerryBush";
+		284 = "SRBadBerryBush";
+		285 = "SROutdoorClip";
+		286 = "SRBones1";
+		287 = "SRBones2";
+		288 = "SRPlainPedestal";
+		289 = "SRPedestalPot";
+		290 = "SRDesk";
+		291 = "SRBanner";
+		292 = "SRDeadTree";
+		293 = "SRWellFull";
+		294 = "SRRocksSkulls";
+		295 = "SRBones3";
+		296 = "SRWhiteSkull";
+		297 = "SRPinkSkull";
+		298 = "SRToxicSlime";
+		299 = "SRFakeTeleport";
+		300 = "SRWellEmpty";
+		301 = "SRRustyDrum";
+		302 = "SRBoxesOnFloor";
+		303 = "SRBlackPuddle";
+		304 = "SRPistolPickup";
+	}
+}

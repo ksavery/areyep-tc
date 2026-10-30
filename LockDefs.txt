@@ -1,0 +1,13 @@
+Lock 62
+{
+	//$Title "Red Key"
+	Any { RedKey SRBloodKey EoDObjBloodyKeyKey3 } // locks match the class exactly: SR's and EoD's blood keys by name
+	Mapcolor 255 0 0
+}
+
+Lock 63
+{
+	//$Title "Green Key"
+	Any { GreenKey SRElevatorKey EoDObjElevatorKeyKey4 } // and their elevator keys
+	Mapcolor 0 255 0
+}

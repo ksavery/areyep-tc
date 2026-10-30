@@ -1,0 +1,106 @@
+// The AReyeP games in the game menu, Read This! in the main menu (MCS's games
+// have it back) and End of Destiny's options: the TC's menus with those changes
+
+
+ListMenu "GameMenu"
+{
+	Linespacing 29
+	Selector "Selector", -10, -6
+
+	Font "BigFont", "TrueWhite"
+	StaticTextCentered 160, 0, "$M_GAME"
+
+	Position 72, 32
+
+	Box 308, 104, -8
+
+	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+
+	GameSelection "Spear Resurrection", "s", "GAME_SR", "SR1"
+	GameSelection "SR: New Maps", "n", "GAME_SR", "SR2"
+	GameSelection "End of Destiny", "d", "GAME_EOD", "EOD"
+
+	Class "GameMenu"
+}
+
+ListMenu "MainMenu"
+{
+	TopStrip 10
+
+	StripTitle 0, 0, "M_Menu"
+
+	Position 100, 55
+
+	Box 178, 150, 0 // Was 136 high; added height due to always showing 'End Game'
+
+	TextItem "$M_NEW", "n", "PlayerclassMenu"
+	TextItem "$M_SOUND", "s", "SoundOptions"
+	TextItem "$M_OPTIONS", "c", "TCOptions"
+	WolfMPTextItem "$MNU_PLAYERSETUP", "p", "WolfNewPlayerMenu"
+	TextItem "$M_LOAD", "l", "LoadGameMenu"
+
+	WolfTextItemDisabled "$M_SAVE", "", "", 0
+	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+	WolfTextItem "$M_SAVE", "s", "SaveGameMenu", 1
+
+	TextItem "$M_VIDEOOPTIONS", "w", "VideoModeMenu"
+
+	IfOption(ReadThis)
+	{
+		Font "BigFont", "WolfMenuYellow", "WolfMenuYellowBright"
+		WolfTextItem "$M_READTHIS", "r", "MCSReadThis", 0
+		Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+		WolfTextItem "$M_READTHIS", "r", "MCSReadThis", 1
+	}
+
+	WolfTextItem "$M_HIGHSCORES", "v", "HighScores", 0
+	//WolfTextItem "$M_ENDGAME", "e", "EndGameMenu", 1
+	TextItem "$M_ENDGAME", "e", "EndGameMenu" // Always show the 'End Game' entry so that we can return to game selection
+
+	WolfTextItem "$M_BACKTODEMO", "b", "CloseMenu", 0
+	Font "BigFont", "WolfMenuYellow", "WolfMenuYellowBright"
+	WolfTextItem "$M_BACKTOGAME", "b", "CloseMenu", 1
+	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+
+	TextItem "$M_QUIT", "q", "QuitMenu"
+}
+
+OptionMenu "TCOptions"
+{
+	Title "$M_OPTIONS"
+
+	SubMenu "$M_ENGINEOPTIONS",				"OptionsMenu"
+	StaticText ""
+	StaticText "$M_GAMEPLAYOPTIONS", 1
+	Option "$M_OPTIONSMOVEMENT",				"g_momentum", "YesNo"
+	Option "$M_OPTIONSFREELOOK",				"freelook", "YesNo"
+	Option "$M_OPTIONSCHEATS",				"goobers", "YesNo"
+	Slider "$M_OPTIONSMPENEMYBUFF",			"g_buffpercent", 0.0, 1.0, 0.05, 2
+	StaticText ""
+	StaticText "$M_COSMETICOPTIONS", 1
+	Option "$M_OPTIONSLOADING",				"g_nointro", "YesNo"
+	Option "$M_OPTIONSPUFFS",				"g_noblood", "NoYes"
+	Option "$M_OPTIONSDYNAMICLIGHTS", 		"g_dynamiclights", "YesNo"
+	Option "$M_OPTIONSROTATIONSPRITES",		"g_userotations", "YesNo"
+	Option "$M_OPTIONSDOORKEYCOLORS",		"g_usedoorkeycolors", "YesNo"
+	Option "$M_OPTIONSUSEFLATS",			"g_useflats", "FlatStyle"
+	Option "$M_OPTIONSMENUBACK",			"g_menubackstyle", "BackStyle"
+	Option "$M_OPTIONSHITWALLSND",			"g_wallhitsounds", "YesNo"
+	StaticText ""
+	StaticText "$M_HUDOPTIONS", 1
+	Option "$M_OPTIONSHUDSTYLE",			"hud_althud", "YesNo"
+	Option "$M_OPTIONSFADESTYLE",			"g_fadestyle", "YesNo"
+	Slider "$M_OPTIONSFADESPEED",			"g_fizzlespeed", 0.5, 4.0, 0.5, 1, "g_fadestyle", 1
+	Option "$M_OPTIONSVIEWBOB",				"g_viewbobscale", "YesNo"
+	Option "$M_OPTIONSTRANLSLATEWPN",		"g_translatewpnsprites", "YesNo"
+	Option "$M_OPTIONSBORDER",				"g_borderstyle", "BorderStyle"
+	Option "$M_OPTIONSHUDRATIO",			"g_hudratio", "ForceRatios"
+	StaticText ""
+	StaticText "$M_COMPATABILITYOPTIONS", 1
+	Option "$M_OPTIONSPUSHWALLDIST",		"g_maxpushwallmove", "PushwallOptions"
+	Option "$M_OPTIONSDEAFGUARDDOORS",		"g_deafguarddoors", "DeafGuardTileOptions"
+	StaticText ""
+	SafeCommand	"$M_OPTIONSRESET",			"g_resetdefaults"
+	SafeCommand	"$M_OPTIONSSAVE",			"writeini"
+	Command "$OPTMNU_CONSOLE",				"menuconsole"
+}
