@@ -13,6 +13,7 @@ launch.json
 *.SR1
 *.SR2
 *.EOD
+*.WFD
 __pycache__/
 run/
 

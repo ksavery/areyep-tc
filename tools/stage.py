@@ -8,6 +8,7 @@ writes it under the extensions the TC expects:
   *.SR1       Spear Resurrection, original 2001 maps   (Spearres.zip)
   *.SR2       Spear Resurrection, 2011 SDL new mapset  (SRSDL2.ZIP)
   *.EOD       End of Destiny, editor's version v1.12   (EOD_112.ZIP)
+  *.WFD        Wolfendoom, 2001                          (Wolfdoom.zip)
 
 usage: stage.py OUTDIR [--source DIR ...]
 """
@@ -48,11 +49,28 @@ FILES = [
     ("EOD_112.ZIP", "VGAGRAPH.WL6", "VGAGRAPH.EOD", None),
     ("EOD_112.ZIP", "SPEAR.EXE", "SPEAR.EOD", None),  # for its game palette (tools/assets.py)
     ("Spearres.zip", "HELPART.RIP", "HELPART.SR1", None),  # Read This! (EoD's is a VGAGRAPH chunk)
+    # Wolfendoom: a Wolfenstein 3D mod, so stock WL6 layout throughout
+    ("Wolfdoom.zip", "VSWAP.WL6", "VSWAP.WFD", "4f54abe0"),
+    ("Wolfdoom.zip", "GAMEMAPS.WL6", "GAMEMAPS.WFD", None),
+    ("Wolfdoom.zip", "MAPHEAD.WL6", "MAPHEAD.WFD", None),
+    ("Wolfdoom.zip", "AUDIOHED.WL6", "AUDIOHED.WFD", None),
+    ("Wolfdoom.zip", "AUDIOT.WL6", "AUDIOT.WFD", None),
+    ("Wolfdoom.zip", "VGAHEAD.WL6", "VGAHEAD.WFD", None),
+    ("Wolfdoom.zip", "VGADICT.WL6", "VGADICT.WFD", None),
+    ("Wolfdoom.zip", "VGAGRAPH.WL6", "VGAGRAPH.WFD", None),
+    ("Wolfdoom.zip", "Wolfdoom.exe", "WOLFDOOM.WFD", None),  # level names, par times, engine changes
+    ("Wolfdoom.zip", "Helpart.wl6", "HELPART.WFD", None),  # Read This!
+    ("Wolfdoom.zip", "Endart1.wl6", "ENDART1.WFD", None),  # episode ending texts
+    ("Wolfdoom.zip", "Endart2.wl6", "ENDART2.WFD", None),
+    ("Wolfdoom.zip", "Endart3.wl6", "ENDART3.WFD", None),
+    ("Wolfdoom.zip", "Endart4.wl6", "ENDART4.WFD", None),
+    ("Wolfdoom.zip", "Endart5.wl6", "ENDART5.WFD", None),
+    ("Wolfdoom.zip", "Endart6.wl6", "ENDART6.WFD", None),
 ]
 
 # Real levels per mapset; later MAPHEAD slots hold the "Hope You Have Fun"
 # placeholder maps that ship in the 60-slot TED5 files.
-LEVELS = {"SR1": 23, "SR2": 23, "EOD": 38}
+LEVELS = {"SR1": 23, "SR2": 23, "EOD": 38, "WFD": 60}
 
 
 def find_archive(name, roots):
