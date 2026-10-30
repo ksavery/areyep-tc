@@ -291,6 +291,8 @@ class EoDRocket : WolfRocketSOD
 
 	override int SpecialMissileHit(Actor victim)
 	{
+		// Bodies don't block it: MCS clears a dead actor from the map (actorat), so only walls and solid objects stop a projectile
+		if (victim.bIsMonster && victim.health <= 0) { return 1; }
 		if (victim.player || !victim.bShootable || victim == target) { return -1; }
 		if (victim is "EoDUltraClone" && !(victim is "EoDRobot")) { return 1; }
 		if (victim is "EoDTurret" || victim is "BarnacleWilhelm") { return 1; }
