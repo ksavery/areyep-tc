@@ -49,6 +49,7 @@ class EoDLevelRules : EventHandler
 
 		int slot = AReyePGame.CurrentSlot();
 		Shade(slot);
+		UncountPushwalls();
 		EoDTextLog log = EoDTextLog(StaticEventHandler.Find("EoDTextLog"));
 		if (log && LevelText(slot)) { log.Queue(LevelText(slot)); }
 
@@ -136,6 +137,20 @@ class EoDLevelRules : EventHandler
 		if (exittime || !(e.Thing is "TransGrosse") || AReyePGame.CurrentSlot() != 25) { return; }
 
 		exittime = level.maptime + 105;
+	}
+
+	// End of Destiny's secrets are its secret markers alone (bo_secret and
+	// bo_supersecret, eod4sdl wl_act1.cpp); the TC counts each pushwall as one too
+	void UncountPushwalls()
+	{
+		for (int s = 0; s < level.sectors.Size(); s++)
+		{
+			Sector sec = level.sectors[s];
+			if (!(sec.flags & Sector.SECF_SECRET)) { continue; }
+
+			sec.flags &= ~(Sector.SECF_SECRET | Sector.SECF_WASSECRET);
+			level.total_secrets--;
+		}
 	}
 
 	// eod4sdl's distance shading, which the DOS game doesn't have: each of Kyle
