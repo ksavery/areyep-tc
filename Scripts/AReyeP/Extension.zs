@@ -267,6 +267,8 @@ class AReyePExtension : GameExtension
 	ui void DrawWDBar(ClassicStatusBar sb, ParsedMap map, int points, int lives)
 	{
 		// Wolfendoom's VGAGRAPH 86, 91-132 uses Wolf3D's 320x40 bar layout.
+		// Drawn bottom-aligned at 198 like SR's and EoD's bars, so its top is
+		// at 158 (not Wolf3D's 160): pictures go at 158 + their Wolf3D offset.
 		sb.DrawImage("WDBAR", (160, 198), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_CENTER_BOTTOM);
 		PlayerInfo player = sb.CPlayer;
 		if (points < 0) { points = sb.GetAmount("Score"); }
@@ -276,12 +278,12 @@ class AReyePExtension : GameExtension
 		DrawNumber(sb, max(lives, 0), 112, 1, "WD");
 		DrawNumber(sb, player.health, 168, 3, "WD");
 		DrawNumber(sb, player.mo.CountInv("WolfClip"), 216, 2, "WD");
-		sb.DrawMugShot(136, 164, face:"WDF", accuracy:7);
-		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (240, 164), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
-		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (240, 180), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawMugShot(136, 162, face:"WDF", accuracy:7);
+		sb.DrawImage(player.mo.FindInventory("YellowKey", true) ? "WDYKEY" : "WDNOKEY", (240, 162), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(player.mo.FindInventory("BlueKey", true) ? "WDBKEY" : "WDNOKEY", (240, 178), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
 		Weapon w = player.ReadyWeapon;
 		String pic = w is "WolfKnife" ? "WDKNIFE" : w is "WolfMachineGun" ? "WDMGUN" : w is "WolfChaingun" ? "WDCGUN" : "WDPISTOL";
-		sb.DrawImage(pic, (256, 168), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
+		sb.DrawImage(pic, (256, 166), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP);
 	}
 
 	override bool DrawStatusBar(String game, ClassicStatusBar sb, int points, int lives)
