@@ -16,7 +16,11 @@ class MCSReadThis : OldHelpMenu
 		String family = AReyePGame.CurrentFamily();
 		if (family == "") { family = AReyePGame.Family(g_modgame); }
 		graphicprefix = family == "WFD" ? "WDV" : family == "EOD" ? "EODV" : "SRV";
-		if (family == "WFD") { border = TexMan.CheckForTexture("WD_BORDER", TexMan.Type_Any); }
+		if (family == "WFD")
+		{
+			border = TexMan.CheckForTexture("WD_BORDER", TexMan.Type_Any);
+			GameHandler.ChangeMusic("CORNER"); // WOLFDOOM.WFD CP_ReadThis, image 0x6caf
+		}
 		ParseFile(family == "WFD" ? "Data/WFD/Help.txt" : family == "EOD" ? "Data/EoD/Help.txt" : "Data/SR/Help.txt");
 	}
 }
