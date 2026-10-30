@@ -215,7 +215,7 @@ WD_MENU = {
     "MENUBLUE": 9, "M_CNTRLS": 18, "M_OPTIONS": 10,
     "M_MENU": 10, "M_CUSTOM": 27, "M_LOADGM": 28, "M_SAVEGM": 29,
     "M_SEL1": 11, "M_SEL2": 12, "M_SELCT0": 13, "M_SELCT1": 14,
-    **{"WDEpisodeMenu%d" % n: 29 + n for n in range(1, 7)},
+    **{"WDEPISODE%d" % n: 29 + n for n in range(1, 7)},  # IconListMenu: menu name, upper case, less "MENU", + index
 }
 WD_INTERMISSION = {
     "BREATHE0": 84, "BREATHE1": 43, "BJFINAL": 85,

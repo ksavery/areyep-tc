@@ -127,7 +127,7 @@ class AReyePGame
 	// False outside the AReyeP games, so the caller fills as before.
 	static ui bool DrawBackdrop(int x, int y, int w, int h)
 	{
-		if (!MenuFamily() && g_sod >= 0) { return false; } // g_sod < 0: the game picker, all AReyeP games
+		if (!MenuFamily() && !InPicker()) { return false; }
 		if (w <= 0 || h <= 0) { return true; }
 
 		TextureID tex = TexMan.CheckForTexture("MENUBLUE", TexMan.Type_Any);
@@ -141,6 +141,13 @@ class AReyePGame
 		}
 
 		return true;
+	}
+
+	// The game picker (or no game picked yet) is dressed as the AReyeP games,
+	// whichever game was picked last (Wolfendoom keeps the TC's Wolf3D look)
+	static ui bool InPicker()
+	{
+		return g_sod < 0 || Menu.GetCurrentMenu() is "GameMenu";
 	}
 
 	// Menu pictures: End of Destiny's own (EOD_<name>, tools/assets.py) while
@@ -173,7 +180,7 @@ class AReyePGame
 	// False outside the games.
 	static ui bool, Color, Color, Color WindowColors()
 	{
-		if (!MenuFamily() && g_sod >= 0) { return false, 0, 0, 0; }
+		if (!MenuFamily() && !InPicker()) { return false, 0, 0, 0; }
 		return true, 0x2C2C2C, 0x404040, 0x707070;
 	}
 
