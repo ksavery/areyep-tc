@@ -12,6 +12,9 @@
 //   +areyep_tile "x,y;x,y"  report those tiles' sector heights and codes
 //   +areyep_cheat N    apply MCSCheats cheat N two seconds in
 //   +areyep_fire 1     hold fire from a second in
+//   +areyep_die TIC    kill the player at that gametic
+//   +areyep_setsod TIC  set g_sod again at that gametic, as starting a game does
+//   +areyep_autosave TIC  make an autosave at that gametic
 //   +areyep_shoot "Class"  fire that projectile from the player every two seconds, at the nearest live monster
 //   +areyep_shootowner "Class"  ... owned by a new actor of that class instead of the player
 //   +areyep_give "A,@B"  give the player these a few tics into the level (@: as if walked onto)
@@ -52,7 +55,7 @@ class AReyePDevProbe : StaticEventHandler
 		CVar probe = CVar.FindCVar("areyep_probe");
 		if (!probe || !probe.GetInt() || gametic % 35) { return; }
 
-		console.printf("PROBE tic=%i state=%i map=%s menu=%s", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None');
+		console.printf("PROBE tic=%i state=%i map=%s menu=%s kills=%i/%i secrets=%i/%i", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None', level.killed_monsters, level.total_monsters, level.found_secrets, level.total_secrets);
 
 		GetPsyched psych = GetPsyched(Menu.GetCurrentMenu());
 		if (psych)
@@ -129,6 +132,19 @@ class AReyePDevProbe : StaticEventHandler
 			if (cheatcv.GetInt() < 0) { EventHandler.SendNetworkEvent("mcscheat", cheat); }
 			else { MCSCheats.Apply(players[0].mo, fam, cheat, slot); }
 		}
+
+		CVar savecv = CVar.FindCVar("areyep_autosave");
+		if (savecv && savecv.GetInt() && gametic == savecv.GetInt()) { level.MakeAutoSave(); }
+
+		CVar restylecv = CVar.FindCVar("areyep_setsod");
+		if (restylecv && restylecv.GetInt() && gametic == restylecv.GetInt())
+		{
+			CVar sod = CVar.FindCVar("g_sod");
+			if (sod) { sod.SetInt(sod.GetInt()); }
+		}
+
+		CVar diecv = CVar.FindCVar("areyep_die");
+		if (diecv && diecv.GetInt() && gametic == diecv.GetInt() && players[0].mo) { players[0].mo.DamageMobj(null, null, 1000, 'None', DMG_FORCED); }
 
 		CVar shootcv = CVar.FindCVar("areyep_shoot");
 		if (shootcv && shootcv.GetString().length() && leveltics > 0 && leveltics % 70 == 0 && players[0].mo)
@@ -409,6 +425,7 @@ class AReyePDevProbe : StaticEventHandler
 		console.printf("REPORT plane0 codes with no tile info: %s", ListCodes(nowall, true));
 		console.printf("REPORT wall/door codes whose texture wasn't drawn: %s", ListCodes(untouched, true));
 		console.printf("REPORT object codes with no actor: %s", ListCodes(noactor, false));
+		console.printf("REPORT totals: skill %i, %i kills, %i secrets, %i items", G_SkillPropertyInt(SKILLP_ACSReturn), level.total_monsters, level.total_secrets, level.total_items);
 
 		Array<String> names;
 		Array<int> counts;
