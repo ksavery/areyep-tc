@@ -402,7 +402,7 @@ class AReyePDevProbe : StaticEventHandler
 			else if (tile.flags & (TileInfo.TILE_WALL | TileInfo.TILE_DOOR) && !GraphicsHandler.CheckTouched(tile.tex[0])) { AddUnique(untouched, t); }
 
 			int a = map.planes[1][i];
-			if (a <= 0 || a == 98 || (a >= 19 && a <= 22)) { continue; } // empty, secret door marker, player starts
+			if (a <= 0 || a == 98 || a == 99 || (a >= 19 && a <= 22)) { continue; } // empty, secret door marker, walk-over exit, player starts
 			if (!ActorMap.GetActor(handler.actormaps, map.gametype, a, 4, game)) { AddUnique(noactor, a); }
 		}
 

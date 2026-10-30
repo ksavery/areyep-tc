@@ -14,4 +14,5 @@ version "5.0.0"
 #include "Scripts/AReyeP/EoDLevels.zs"			// End of Destiny per-level rules
 #include "Scripts/AReyeP/EoDWeather.zs"			// End of Destiny snow, outdoors only
 #include "Scripts/AReyeP/EoDMenus.zs"			// End of Destiny story screens and ending
+#include "Scripts/AReyeP/WDMenus.zs"			// Wolfendoom's episode menu
 #include "Scripts/AReyeP/EoDStatics.zs"			// End of Destiny statics (generated)

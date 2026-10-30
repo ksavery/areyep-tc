@@ -2,6 +2,7 @@
 //
 // Family: the shared VSWAP / GraphicMaps / TileCodes set the game uses
 // MapBase: map numbers are MapBase + slot + 1, so MAPINFO levelnums are unique per game
+// (Wolfendoom keeps Wolf3D's episodes: MapBase + episode * 100 + floor, 5101-5610)
 class AReyePGame
 {
 	static clearscope bool, String, String, int Info(String ext)
@@ -11,6 +12,7 @@ class AReyePGame
 		if (ext == "SR1") { return true, "SR", "Spear Resurrection", 2000; }
 		if (ext == "SR2") { return true, "SR", "Spear Resurrection (New Maps)", 3000; }
 		if (ext == "EOD") { return true, "EOD", "Spear: End of Destiny", 4000; }
+		if (ext == "WFD") { return true, "WFD", "Wolfendoom", 5000; }
 
 		return false, "", "", -1;
 	}
@@ -45,6 +47,30 @@ class AReyePGame
 		return base;
 	}
 
+	// SR and EoD run on MCS's Spear engine; Wolfendoom is a Wolfenstein 3D mod
+	static clearscope bool IsMCS(String family)
+	{
+		return family == "SR" || family == "EOD";
+	}
+
+	// MAPINFO level number of a map slot (0-based, as in the GAMEMAPS file)
+	static clearscope int MapNumber(String ext, int slot)
+	{
+		int base = MapBase(ext);
+		if (Family(ext) == "WFD") { return base + (slot / 10 + 1) * 100 + slot % 10 + 1; }
+		return base + slot + 1;
+	}
+
+	// The 0-based slot of a parsed map, -1 outside AReyeP games
+	static clearscope int SlotOf(ParsedMap pm)
+	{
+		if (!pm || !IsGame(pm.extension)) { return -1; }
+
+		int n = pm.mapnum - MapBase(pm.extension);
+		if (Family(pm.extension) == "WFD") { return (n / 100 - 1) * 10 + n % 100 - 1; }
+		return n - 1;
+	}
+
 	// Family of the parsed map being played (or about to be), "" outside AReyeP games
 	static clearscope String CurrentFamily()
 	{
@@ -61,10 +87,7 @@ class AReyePGame
 		MapHandler handler = MapHandler.Get();
 		if (!handler) { return -1; }
 
-		ParsedMap pm = handler.curmap ? handler.curmap : handler.queuedmap;
-		if (!pm || !IsGame(pm.extension)) { return -1; }
-
-		return pm.mapnum - MapBase(pm.extension) - 1;
+		return SlotOf(handler.curmap ? handler.curmap : handler.queuedmap);
 	}
 
 	// The TC asks for Wolf3D songs by name for its title, menus and screens; the
@@ -78,6 +101,7 @@ class AReyePGame
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
 		if (family == "") { family = "SR"; }
+		if (family == "WFD") { return ""; } // Wolfendoom's own music comes with its assets; until then the TC's
 		bool eod = family == "EOD";
 
 		int n = eod ? 2 : 3; // menu
