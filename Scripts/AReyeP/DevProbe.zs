@@ -7,6 +7,7 @@
 //   +areyep_summon "A,B,C"  line those classes up in front of the player (frozen)
 //   +areyep_exit 1|2|3 leave each level (normal / secret exit) once it's reported;
 //                      3: by the normal exit four seconds in, through the intermission
+//                      4: as 1, but only from parsed maps (so a load from the title gets there)
 //   +areyep_goto "x,y,angle"  stand the player on that tile, facing that way
 //   +areyep_push "x,y,ang"  push that pushwall (byte angle), report the distance
 //   +areyep_tile "x,y;x,y"  report those tiles' sector heights and codes
@@ -57,7 +58,7 @@ class AReyePDevProbe : StaticEventHandler
 		CVar probe = CVar.FindCVar("areyep_probe");
 		if (!probe || !probe.GetInt() || gametic % 35) { return; }
 
-		console.printf("PROBE tic=%i state=%i map=%s menu=%s kills=%i/%i secrets=%i/%i game=%s slot=%i next=%i", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None', level.killed_monsters, level.total_monsters, level.found_secrets, level.total_secrets, AReyePGame.CurrentFamily(), AReyePGame.CurrentSlot(), MapHandler.Get() && MapHandler.Get().queuedmap ? MapHandler.Get().queuedmap.mapnum : 0);
+		console.printf("PROBE tic=%i state=%i map=%s menu=%s kills=%i/%i secrets=%i/%i game=%s slot=%i next=%i health=%i ammo=%i/%i", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None', level.killed_monsters, level.total_monsters, level.found_secrets, level.total_secrets, AReyePGame.CurrentFamily(), AReyePGame.CurrentSlot(), MapHandler.Get() && MapHandler.Get().queuedmap ? MapHandler.Get().queuedmap.mapnum : 0, players[0].health, players[0].mo ? players[0].mo.CountInv("WolfClip") : -1, players[0].mo ? players[0].mo.CountInv("SRAmmo2") : -1);
 
 		GetPsyched psych = GetPsyched(Menu.GetCurrentMenu());
 		if (psych)
@@ -69,6 +70,9 @@ class AReyePDevProbe : StaticEventHandler
 
 	override void WorldLoaded(WorldEvent e)
 	{
+		CVar probe = CVar.FindCVar("areyep_probe");
+		if (probe && probe.GetInt()) { console.printf("ENTER save=%i slot=%i health=%i ammo=%i/%i items=%i loadout=%i", e.IsSaveGame, AReyePGame.CurrentSlot(), players[0].health, players[0].mo ? players[0].mo.CountInv("WolfClip") : -1, players[0].mo ? players[0].mo.CountInv("SRAmmo2") : -1, players[0].mo ? players[0].mo.CountInv("WolfMachineGun") : -1, SRRules.Get() ? SRRules.Get().needloadout[0] : -1); }
+
 		leveltics = 0;
 	}
 
@@ -204,7 +208,7 @@ class AReyePDevProbe : StaticEventHandler
 
 		CVar exitcv = CVar.FindCVar("areyep_exit");
 		if (exitcv && exitcv.GetInt() == 3 && leveltics == 140) { level.ExitLevel(0, false); } // as the elevator does, intermission and all
-		else if (exitcv && exitcv.GetInt() && exitcv.GetInt() < 3 && leveltics == 20)
+		else if (exitcv && (exitcv.GetInt() == 4 ? MapHandler.Get() && MapHandler.Get().curmap : exitcv.GetInt() && exitcv.GetInt() < 3) && leveltics == 20)
 		{
 			String next = exitcv.GetInt() == 2 ? level.NextSecretMap : level.NextMap;
 			console.printf("EXIT -> %s", next);

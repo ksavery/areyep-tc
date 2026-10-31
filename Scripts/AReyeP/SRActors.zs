@@ -943,6 +943,13 @@ class SRRules : StaticEventHandler
 	{
 		if (!e.IsSaveGame) { warped = false; }
 
+		// A new life was owed to the session, not this save: the title screen's
+		// NewGame leaves it set. An autosave from a level's start counts as a respawn
+		if (e.IsSaveGame && level.time > GameTicRate)
+		{
+			for (int p = 0; p < MAXPLAYERS; p++) { needloadout[p] = false; }
+		}
+
 		slot = -1;
 		ambienttimer = 0;
 		for (int t = 0; t < 3; t++) { stormtimer[t] = 0; }
