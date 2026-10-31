@@ -40,6 +40,8 @@ class AReyePDevProbe : StaticEventHandler
 				if (colon > 0 && cmds[c].Left(colon).ToInt() == gametic)
 				{
 					String cmd = cmds[c].Mid(colon + 1);
+					if (cmd.Left(5) ~== "skill") { Menu.SetMenu('SkillMenu', 9); continue; } // the LEVEL episode, as New Game goes
+					if (cmd ~== "enter") { if (Menu.GetCurrentMenu()) { Menu.GetCurrentMenu().MenuEvent(Menu.MKEY_Enter, false); } continue; }
 					if (cmd.Left(5) ~== "menu:") { Menu.SetMenu(cmd.Mid(5)); continue; } // menu CCMDs refuse to run from here
 
 					let item = new("OptionMenuItemSafeCommand");
@@ -55,7 +57,7 @@ class AReyePDevProbe : StaticEventHandler
 		CVar probe = CVar.FindCVar("areyep_probe");
 		if (!probe || !probe.GetInt() || gametic % 35) { return; }
 
-		console.printf("PROBE tic=%i state=%i map=%s menu=%s kills=%i/%i secrets=%i/%i", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None', level.killed_monsters, level.total_monsters, level.found_secrets, level.total_secrets);
+		console.printf("PROBE tic=%i state=%i map=%s menu=%s kills=%i/%i secrets=%i/%i game=%s slot=%i next=%i", gametic, gamestate, level.mapname, Menu.GetCurrentMenu() ? Menu.GetCurrentMenu().GetClassName() : 'None', level.killed_monsters, level.total_monsters, level.found_secrets, level.total_secrets, AReyePGame.CurrentFamily(), AReyePGame.CurrentSlot(), MapHandler.Get() && MapHandler.Get().queuedmap ? MapHandler.Get().queuedmap.mapnum : 0);
 
 		GetPsyched psych = GetPsyched(Menu.GetCurrentMenu());
 		if (psych)
