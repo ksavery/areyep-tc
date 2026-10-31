@@ -523,7 +523,7 @@ class SRTeleportArtefact : SRFloorHazard
 
 			// Some SR levels switch to "outside" floor/ceiling colours once you've warped
 			SRRules rules = SRRules.Get();
-			if (rules && !rules.warped)
+			if (rules && !rules.warped && !rules.zoned)
 			{
 				rules.warped = true;
 				let flats = ReplacementHandler(StaticEventHandler.Find("ReplacementHandler"));
@@ -894,6 +894,10 @@ class SRRules : StaticEventHandler
 {
 	int slot; // map slot (0-22) of the current SR map, -1 elsewhere
 	bool warped; // An Artefact of Displacement was used on this map (alternate flats; EoD's too)
+	bool zoned; // This map's alternate flats are on the area past its artefacts instead
+	int zonemap;
+	Array<int> outside; // Sectors in that area
+	TextureID outsidefloor, outsideceiling;
 	int stormtimer[3];
 	int ambienttimer;
 	bool needloadout[MAXPLAYERS];
@@ -952,6 +956,7 @@ class SRRules : StaticEventHandler
 
 		if (e.IsSaveGame) { MarkBronzeDoors(); }
 
+		zonemap = 0;
 		slot = -1;
 		ambienttimer = 0;
 		for (int t = 0; t < 3; t++) { stormtimer[t] = 0; }
@@ -960,6 +965,7 @@ class SRRules : StaticEventHandler
 	override void WorldTick()
 	{
 		if (level.maptime == 1) { StartLevel(); }
+		ZoneFlats();
 		if (slot == 0) { Storm(); }
 		else if (slot == 20 || slot == 21 || slot == 22) { Ambience(); }
 	}
@@ -980,6 +986,129 @@ class SRRules : StaticEventHandler
 			// GetBonus refuses ammo type 1 at 150 (cmpw $0x96 on gamestate's ammo)
 			Inventory clip = players[p].mo.FindInventory("WolfClip");
 			if (clip) { clip.MaxAmount = sr ? 150 : clip.Default.MaxAmount; }
+		}
+	}
+
+	// MCS switched a level to its outside flats for good on the first warp, so
+	// walking back in stayed outside. Where the artefacts are the only way between
+	// two areas, the area you can't walk to from the start has them instead, and
+	// the switch stays off
+	void ZoneFlats()
+	{
+		MapHandler handler = MapHandler.Get();
+		ParsedMap map = handler ? handler.curmap : null;
+		if (!map || AReyePGame.Family(map.extension) != "SR") { zoned = false; return; }
+
+		if (zonemap == map.mapnum)
+		{
+			// Changing the flats setting repaints the whole level
+			if (!zoned || level.maptime % 35 || level.sectors[outside[0]].GetTexture(Sector.ceiling) == outsideceiling) { return; }
+			PaintOutside();
+			return;
+		}
+
+		zonemap = map.mapnum;
+		zoned = false;
+		outside.Clear();
+
+		String game = map.extension.MakeUpper();
+		int mapslot = AReyePGame.SlotOf(map);
+		int ceiling, floor, warpedceiling, warpedfloor;
+		[ceiling, floor] = AReyePGame.Flats(game, mapslot, false);
+		[warpedceiling, warpedfloor] = AReyePGame.Flats(game, mapslot, true);
+		if (ceiling == warpedceiling && floor == warpedfloor) { return; }
+
+		Array<int> open;
+		Array<bool> reached;
+		open.Reserve(map.width * map.height);
+		reached.Reserve(map.width * map.height);
+
+		int start = -1;
+		for (int i = 0; i < open.Size(); i++)
+		{
+			TileInfo tile;
+			int t;
+			[t, tile] = map.TileAt((i % map.width, i / map.width));
+			int a = map.planes[1][i];
+			open[i] = (tile && tile.flags & (TileInfo.TILE_FLOOR | TileInfo.TILE_DOOR)) || a == 0x62;
+			reached[i] = false;
+			if (a >= 0x13 && a <= 0x16) { start = i; }
+		}
+		if (start < 0) { return; }
+
+		FloodTiles(map, start, open, reached);
+
+		// The outside: where an artefact lands you, if you can't walk there
+		Array<bool> warpedto;
+		warpedto.Reserve(open.Size());
+		for (int i = 0; i < open.Size(); i++) { warpedto[i] = false; }
+		for (int i = 0; i < open.Size(); i++)
+		{
+			int a = map.planes[1][i];
+			if ((a == 101 || a == 103) && !reached[i] && !warpedto[i]) { FloodTiles(map, i, open, warpedto); }
+		}
+
+		for (int s = 0; s < level.sectors.Size(); s++)
+		{
+			Sector sec = level.sectors[s];
+			if (abs(sec.centerspot.x) > 4096 || abs(sec.centerspot.y) > 4096) { continue; }
+
+			Vector2 pos = ParsedMap.CoordsToGrid(sec.centerspot);
+			int i = int(pos.y) * map.width + int(pos.x);
+			if (i >= 0 && i < open.Size() && warpedto[i]) { outside.Push(s); }
+		}
+		if (!outside.Size()) { return; }
+
+		let flats = ReplacementHandler(StaticEventHandler.Find("ReplacementHandler"));
+		if (!flats) { return; }
+
+		// (its own cvar isn't set up in a session that started with a load)
+		int style = CVar.GetCVar("g_useflats", players[consoleplayer]).GetInt();
+
+		zoned = true;
+		warped = true;
+		flats.CheckFlats(style);
+		outsidefloor = level.sectors[outside[0]].GetTexture(Sector.floor);
+		outsideceiling = level.sectors[outside[0]].GetTexture(Sector.ceiling);
+		warped = false;
+		flats.CheckFlats(style);
+		PaintOutside();
+	}
+
+	void FloodTiles(ParsedMap map, int start, Array<int> open, out Array<bool> reached)
+	{
+		Array<int> flood;
+		flood.Push(start);
+		reached[start] = true;
+		while (flood.Size())
+		{
+			int i = flood[flood.Size() - 1];
+			flood.Pop();
+
+			int x = i % map.width;
+			int y = i / map.width;
+			for (int d = 0; d < 4; d++)
+			{
+				int nx = x + (d == 0 ? 1 : d == 1 ? -1 : 0);
+				int ny = y + (d == 2 ? 1 : d == 3 ? -1 : 0);
+				if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) { continue; }
+
+				int n = ny * map.width + nx;
+				if (!open[n] || reached[n]) { continue; }
+
+				reached[n] = true;
+				flood.Push(n);
+			}
+		}
+	}
+
+	void PaintOutside()
+	{
+		for (int s = 0; s < outside.Size(); s++)
+		{
+			Sector sec = level.sectors[outside[s]];
+			sec.SetTexture(Sector.floor, outsidefloor);
+			sec.SetTexture(Sector.ceiling, outsideceiling);
 		}
 	}
 
