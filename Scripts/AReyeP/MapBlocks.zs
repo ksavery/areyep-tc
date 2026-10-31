@@ -5,7 +5,7 @@ class AReyePBlockMarker : MapMarker
 {
 	Default
 	{
-		Scale 1.0;
+		Scale 0.45;
 	}
 
 	States
