@@ -11,3 +11,10 @@ Lock 63
 	Any { GreenKey SRElevatorKey EoDObjElevatorKeyKey4 } // and their elevator keys
 	Mapcolor 0 255 0
 }
+
+Lock 64
+{
+	//$Title "Bronze Key"
+	Any { BlueKey BlueKeyLost } // the stock silver key's class, opening SR's and EoD's bronze doors (SRRules.MarkBronzeDoors)
+	Mapcolor 205 127 50
+}

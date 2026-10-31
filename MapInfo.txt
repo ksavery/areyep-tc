@@ -1,6 +1,6 @@
 gameinfo
 {
-	AddEventHandlers = "AReyePDevProbe", "MCSRules", "SRRules", "EoDRules", "EoDLevelRules", "EoDTextLog", "EoDWeather", "WDLevelRules", "AReyePSaveState"
+	AddEventHandlers = "AReyePDevProbe", "MCSRules", "SRRules", "EoDRules", "EoDLevelRules", "EoDTextLog", "EoDWeather", "WDLevelRules", "AReyePSaveState", "AReyePBlockMarkers"
 	StatScreen_Single = "AReyePStats"
 	StatScreen_Coop = "AReyePStats"
 	StatScreen_DM = "AReyePStats"

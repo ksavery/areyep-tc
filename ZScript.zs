@@ -17,5 +17,6 @@ version "5.0.0"
 #include "Scripts/AReyeP/WDMenus.zs"			// Wolfendoom's episode menu
 #include "Scripts/AReyeP/WDLevels.zs"			// Wolfendoom's actor sounds
 #include "Scripts/AReyeP/SaveState.zs"			// SR's state that saves don't keep
+#include "Scripts/AReyeP/MapBlocks.zs"			// The automap's X over solid things
 #include "Scripts/AReyeP/WDStats.zs"			// Wolfendoom's intermission art
 #include "Scripts/AReyeP/EoDStatics.zs"			// End of Destiny statics (generated)

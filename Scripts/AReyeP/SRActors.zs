@@ -950,6 +950,8 @@ class SRRules : StaticEventHandler
 			for (int p = 0; p < MAXPLAYERS; p++) { needloadout[p] = false; }
 		}
 
+		if (e.IsSaveGame) { MarkBronzeDoors(); }
+
 		slot = -1;
 		ambienttimer = 0;
 		for (int t = 0; t < 3; t++) { stormtimer[t] = 0; }
@@ -967,6 +969,7 @@ class SRRules : StaticEventHandler
 		ParsedMap map = MapHandler.Get() ? MapHandler.Get().curmap : null;
 		bool sr = map && AReyePGame.Family(map.extension) == "SR";
 		slot = sr ? map.mapnum - AReyePGame.MapBase(map.extension) - 1 : -1;
+		MarkBronzeDoors();
 
 		for (int p = 0; p < MAXPLAYERS; p++)
 		{
@@ -977,6 +980,18 @@ class SRRules : StaticEventHandler
 			// GetBonus refuses ammo type 1 at 150 (cmpw $0x96 on gamestate's ammo)
 			Inventory clip = players[p].mo.FindInventory("WolfClip");
 			if (clip) { clip.MaxAmount = sr ? 150 : clip.Default.MaxAmount; }
+		}
+	}
+
+	// The bronze key is the stock silver key's class, whose lock draws blue on the
+	// automap: SR's and EoD's doors take a lock of their own (LockDefs)
+	void MarkBronzeDoors()
+	{
+		if (!AReyePGame.IsMCS(AReyePGame.CurrentFamily())) { return; }
+
+		for (int l = 0; l < level.lines.Size(); l++)
+		{
+			if (level.lines[l].locknumber == 61) { level.lines[l].locknumber = 64; }
 		}
 	}
 
