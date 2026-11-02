@@ -6,6 +6,8 @@ Contents:
   Music/SRMUS<nn>.lmp         SR's AdLib songs, wrapped like the TC's (ADLIB\\1 header, 32-bit length, IMF data)
   MAPINFO.SR                  SR1/SR2 level names, music and progression
   Data/SR/Help.txt            Read This! (HELPART.SR1)
+  Data/SR/Text01-05.txt       Level 13 and boss screens (INTRART1-5)
+  Data/SR/End.txt             Closing credits (ENDART1)
   Sounds/SR/SRDSnnn.wav       SR's digitized sounds (VSWAP.SR, 8-bit 7042 Hz)
   Sounds/SR/SRALnnn.wav       SR's AdLib sound effects, rendered by tools/adlibsfx.cpp
   SNDINFO.SR                  TC sound names -> SR sounds, plus sr/soundNN
@@ -702,6 +704,16 @@ def main():
         helpart = staged.joinpath("HELPART.SR1")
         if helpart.exists():
             z.writestr("Data/SR/Help.txt", helpart.read_bytes().decode("latin1").replace("\r", "").split("^E")[0])
+
+        endart = staged.joinpath("ENDART1.SR")
+        if endart.exists():
+            z.writestr("Data/SR/End.txt", endart.read_bytes().decode("latin1").replace("\r", "").split("^E")[0])
+
+        # The screens before level 13 and the boss levels (INTRART1-5)
+        for n in range(1, 6):
+            text = staged.joinpath(f"INTRART{n}.SR")
+            if text.exists():
+                z.writestr("Data/SR/Text%02d.txt" % n, text.read_bytes().decode("latin1").replace("\r", "").split("^E")[0])
 
         songs = music_chunks(staged.joinpath("AUDIOHED.SR1").read_bytes(), staged.joinpath("AUDIOT.SR1").read_bytes(), SR_MUSIC_START)
         for n, data in enumerate(songs):

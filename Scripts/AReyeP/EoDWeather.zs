@@ -52,13 +52,17 @@ class EoDWeather : StaticEventHandler
 			for (int frame = 0; frame < 2; frame++) { Step(); } // two 70 Hz frames a tic
 		}
 
-		int mode = pm.planes[0][(AReyePGame.Warped() ? 6 : 4) + (varies ? 1 : 0)];
+		// Levels with a separate warped area have its weather there, not everywhere
+		Actor mo = players[consoleplayer].mo;
+		SRRules rules = SRRules.Get();
+		bool warped = rules && rules.zoned ? mo && rules.IsOutside(mo.cursector) : AReyePGame.Warped();
+
+		int mode = pm.planes[0][(warped ? 6 : 4) + (varies ? 1 : 0)];
 		if (mode < 2) { return; }
 
 		// A steady snowfall falls at full strength (MCS would keep whatever count
 		// the last changing level left, none at all after a new game)
 		int count = varies ? flakes : MAXFLAKES;
-		Actor mo = players[consoleplayer].mo;
 		if (mo && count > 0) { Snow(mo, pm, count); }
 	}
 

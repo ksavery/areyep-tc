@@ -34,10 +34,11 @@ class EoDLevelText : OldHelpMenu
 
 		sharewareremap = false;
 		allowexit = true;
-		graphicprefix = "EODV";
+		bool sr = AReyePGame.CurrentFamily() == "SR";
+		graphicprefix = sr ? "SRV" : "EODV";
 
 		EoDTextLog log = EoDTextLog(StaticEventHandler.Find("EoDTextLog"));
-		ParseFile(String.Format("Data/EoD/Text%02d.txt", log ? log.pending : 0));
+		ParseFile(String.Format(sr ? "Data/SR/Text%02d.txt" : "Data/EoD/Text%02d.txt", log ? log.pending : 0));
 	}
 
 	override bool MenuEvent(int mkey, bool fromcontroller)
@@ -50,10 +51,47 @@ class EoDLevelText : OldHelpMenu
 	}
 }
 
+// Before SR's ending: the four cards Spear shows BJ collapsing on (Victory,
+// BJCOLLAPSE1-4), which SR's art turns into Hitler's fading, with his end date
+class SRVictoryCards : GenericMenu
+{
+	const CARDTICS = 105; // 210 70 Hz tics
+	static const String cards[] = { "SRV0031", "SRV0032", "SRV0033", "SRV0034" };
+	int ticks;
+
+	override void Init(Menu parent)
+	{
+		Super.Init(parent);
+
+		DontDim = true;
+		DontBlur = true;
+	}
+
+	override void Drawer()
+	{
+		screen.Dim(0x383838, 1.0, 0, 0, screen.GetWidth(), screen.GetHeight());
+
+		TextureID tex = TexMan.CheckForTexture(cards[min(ticks / CARDTICS, 3)], TexMan.Type_Any);
+		if (tex.IsValid()) { screen.DrawTexture(tex, false, 124, 44, DTA_320x200, true); }
+	}
+
+	override void Ticker()
+	{
+		if (++ticks < CARDTICS * cards.Size()) { return; }
+
+		EventHandler.SendNetworkEvent("srvictorydone");
+		Close();
+	}
+
+	override bool MenuEvent(int mkey, bool fromcontroller) { return true; }
+}
+
 // The ending: four full-screen pictures, then the "thanks for playing" article
 class EoDFinale : OldHelpMenu
 {
-	static const String pictures[] = { "EODEND1", "EODEND3", "EODEND4", "EODEND2" };
+	static const String eodpictures[] = { "EODEND1", "EODEND3", "EODEND4", "EODEND2" };
+	static const String srpictures[] = { "SRV0081", "SRV0083", "SRV0084", "SRV0082" }; // Its story, then "The End?"
+	bool sr;
 	int picture;
 
 	override void Init(Menu parent)
@@ -62,16 +100,17 @@ class EoDFinale : OldHelpMenu
 
 		sharewareremap = false;
 		allowexit = false;
-		graphicprefix = "EODV";
-		ParseFile("Data/EoD/End.txt");
+		sr = AReyePGame.CurrentFamily() == "SR";
+		graphicprefix = sr ? "SRV" : "EODV";
+		ParseFile(sr ? "Data/SR/End.txt" : "Data/EoD/End.txt");
 	}
 
 	override void Drawer()
 	{
-		if (picture < pictures.Size())
+		if (picture < 4)
 		{
 			screen.Dim(0, 1.0, 0, 0, screen.GetWidth(), screen.GetHeight());
-			TextureID tex = TexMan.CheckForTexture(pictures[picture], TexMan.Type_Any);
+			TextureID tex = TexMan.CheckForTexture(sr ? srpictures[picture] : eodpictures[picture], TexMan.Type_Any);
 			if (tex.IsValid()) { screen.DrawTexture(tex, false, 0, 0, DTA_320x200, true); }
 			return;
 		}
@@ -81,7 +120,7 @@ class EoDFinale : OldHelpMenu
 
 	override bool MenuEvent(int mkey, bool fromcontroller)
 	{
-		if (picture < pictures.Size())
+		if (picture < 4)
 		{
 			if (mkey == MKEY_Enter || mkey == MKEY_Right || mkey == MKEY_Back)
 			{

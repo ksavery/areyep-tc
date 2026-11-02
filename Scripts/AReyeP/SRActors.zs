@@ -693,17 +693,25 @@ class SRGrimReaper : PacManGhost
 	States
 	{
 		Spawn:
-			SRGR A 0;
+			SRGR A 0 A_Jump(128, "Yellow"); // Half of them look like the shootable ghost (SpawnGhosts)
+			Goto Super::Spawn;
+		Yellow:
+			SRGH A 0;
 			Goto Super::Spawn;
 	}
 }
 
+// The one ghost that can be shot (SpawnGhosts, SR image 0x14e80): it dissolves,
+// worth 2000 points and not a kill, with a one in four chance of leaving treasure
+// (KillActor 0x11189). The Reaper's and the bosses' spawns leave them unshootable.
 class SRYellowGhost : PacManGhost
 {
 	Default
 	{
 		//$Category Spear Resurrection/Enemies
 		//$Title Yellow Ghost
+		-INVULNERABLE
+		ClassicBase.ScoreAmount 2000;
 	}
 
 	States
@@ -711,6 +719,29 @@ class SRYellowGhost : PacManGhost
 		Spawn:
 			SRGH A 0;
 			Goto Super::Spawn;
+		Death:
+			SRGD ABC 5;
+			SRGD D -1;
+			Stop;
+	}
+
+	override void Die(Actor source, Actor inflictor, int dmgflags, Name MeansOfDeath)
+	{
+		Super.Die(source, inflictor, dmgflags, MeansOfDeath);
+
+		if (Random[MCS](0, 255) >= 0x40) { return; }
+
+		Class<Actor> treasure = "Crown";
+		if (Random[MCS](0, 255) < 0x65) { treasure = "JeweledCross"; }
+		else
+		{
+			int roll = Random[MCS](0, 255);
+			if (roll >= 0x65 && roll < 0xB5) { treasure = "Chalice"; }
+			else if (Random[MCS](0, 255) < 0xE7) { treasure = "Chest"; }
+		}
+
+		Actor mo = Spawn(treasure, pos, ALLOW_REPLACE);
+		if (mo) { mo.bDropped = true; }
 	}
 }
 
@@ -798,6 +829,15 @@ class SRSolidDecoration : ClassicDecoration
 	Default
 	{
 		Height 64;
+	}
+
+	// As in the original, these stop people, not missiles: those only stop for
+	// walls and whatever they can hurt
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if (other.bMissile && !bShootable) { return false; }
+
+		return Super.CanCollideWith(other, passive);
 	}
 }
 
@@ -894,9 +934,12 @@ class SRRules : StaticEventHandler
 {
 	int slot; // map slot (0-22) of the current SR map, -1 elsewhere
 	bool warped; // An Artefact of Displacement was used on this map (alternate flats; EoD's too)
+	const ANGELDEATHTICS = 105; // Its death animation, and a moment after
+	int exittime;
 	bool zoned; // This map's alternate flats are on the area past its artefacts instead
 	int zonemap;
 	Array<int> outside; // Sectors in that area
+	int outsideprobe; // One of them to check they're still painted
 	TextureID outsidefloor, outsideceiling;
 	int stormtimer[3];
 	int ambienttimer;
@@ -956,14 +999,38 @@ class SRRules : StaticEventHandler
 
 		if (e.IsSaveGame) { MarkBronzeDoors(); }
 
+		exittime = 0;
 		zonemap = 0;
 		slot = -1;
 		ambienttimer = 0;
 		for (int t = 0; t < 3; t++) { stormtimer[t] = 0; }
 	}
 
+	// The Angel of Death ends the game: the TC's maps do this with a specialaction,
+	// which the shared Level map can't have for just one map
+	override void InterfaceProcess(ConsoleEvent e)
+	{
+		if (e.Name == "srvictory") { Menu.SetMenu('SRVictoryCards'); }
+	}
+
+	override void NetworkProcess(ConsoleEvent e)
+	{
+		if (!e.IsManual && e.Name == "srvictorydone") { level.ExitLevel(0, false); }
+	}
+
+	override void WorldThingDied(WorldEvent e)
+	{
+		if (slot == 20 && e.Thing is "AngelofDeath") { exittime = level.maptime + ANGELDEATHTICS; }
+	}
+
 	override void WorldTick()
 	{
+		if (exittime && level.maptime >= exittime)
+		{
+			exittime = 0;
+			EventHandler.SendInterfaceEvent(consoleplayer, "srvictory");
+		}
+
 		if (level.maptime == 1) { StartLevel(); }
 		ZoneFlats();
 		if (slot == 0) { Storm(); }
@@ -976,6 +1043,11 @@ class SRRules : StaticEventHandler
 		bool sr = map && AReyePGame.Family(map.extension) == "SR";
 		slot = sr ? map.mapnum - AReyePGame.MapBase(map.extension) - 1 : -1;
 		MarkBronzeDoors();
+
+		// INTRART1-5: level 13's capture, and each boss's level
+		EoDTextLog log = EoDTextLog(StaticEventHandler.Find("EoDTextLog"));
+		int text = slot == 12 ? 1 : slot == 4 ? 2 : slot == 9 ? 3 : slot == 14 ? 4 : slot == 17 ? 5 : 0;
+		if (log && text) { log.Queue(text); }
 
 		for (int p = 0; p < MAXPLAYERS; p++)
 		{
@@ -990,19 +1062,23 @@ class SRRules : StaticEventHandler
 	}
 
 	// MCS switched a level to its outside flats for good on the first warp, so
-	// walking back in stayed outside. Where the artefacts are the only way between
-	// two areas, the area you can't walk to from the start has them instead, and
-	// the switch stays off
+	// walking back in stayed outside. Where the artefacts lead somewhere you can't
+	// walk to from the start, that has them instead, along with anywhere green,
+	// and the switch stays off
 	void ZoneFlats()
 	{
 		MapHandler handler = MapHandler.Get();
 		ParsedMap map = handler ? handler.curmap : null;
-		if (!map || AReyePGame.Family(map.extension) != "SR") { zoned = false; return; }
+		String family = map ? AReyePGame.Family(map.extension) : "";
+		if (family != "SR" && family != "EOD") { zoned = false; return; }
+
+		// Until the clock starts, the flats code draws for the next map
+		if (level.time < 1) { return; }
 
 		if (zonemap == map.mapnum)
 		{
 			// Changing the flats setting repaints the whole level
-			if (!zoned || level.maptime % 35 || level.sectors[outside[0]].GetTexture(Sector.ceiling) == outsideceiling) { return; }
+			if (!zoned || level.maptime % 35 || level.sectors[outsideprobe].GetTexture(Sector.ceiling) == outsideceiling) { return; }
 			PaintOutside();
 			return;
 		}
@@ -1016,7 +1092,14 @@ class SRRules : StaticEventHandler
 		int ceiling, floor, warpedceiling, warpedfloor;
 		[ceiling, floor] = AReyePGame.Flats(game, mapslot, false);
 		[warpedceiling, warpedfloor] = AReyePGame.Flats(game, mapslot, true);
-		if (ceiling == warpedceiling && floor == warpedfloor) { return; }
+		bool differs = ceiling != warpedceiling || floor != warpedfloor;
+
+		// End of Destiny's are in the map's row 0, with its sky
+		if (family == "EOD")
+		{
+			for (int c = 0; c < 8; c += 2) { differs = differs || (c < 4 ? map.planes[0][c / 2] != map.planes[0][c / 2 + 2] : map.planes[0][c / 2 + 2] != map.planes[0][c / 2 + 4]); }
+		}
+		if (!differs) { return; }
 
 		Array<int> open;
 		Array<bool> reached;
@@ -1048,6 +1131,38 @@ class SRRules : StaticEventHandler
 			if ((a == 101 || a == 103) && !reached[i] && !warpedto[i]) { FloodTiles(map, i, open, warpedto); }
 		}
 
+		// Anywhere with trees or shrubs is outside too, up to its doors and secret
+		// walls. Hanging vines mean a ceiling: there, only the plants' own tiles are,
+		// which on SR2's Black Forest is a strip beyond a room's walls
+		Array<int> nodoors;
+		nodoors.Copy(open);
+		for (int i = 0; i < nodoors.Size(); i++)
+		{
+			TileInfo tile;
+			int t;
+			[t, tile] = map.TileAt((i % map.width, i / map.width));
+			if ((tile && tile.flags & TileInfo.TILE_DOOR) || map.planes[1][i] == 0x62) { nodoors[i] = false; }
+		}
+
+		Array<bool> area;
+		area.Reserve(open.Size());
+		for (int i = 0; i < open.Size(); i++)
+		{
+			int a = map.planes[1][i];
+			bool greenery = family == "SR" && (a == 64 || a == 65 || a == 68 || a == 69 || a == 71);
+			if (!greenery || !nodoors[i] || warpedto[i]) { continue; }
+
+			for (int n = 0; n < area.Size(); n++) { area[n] = false; }
+			FloodTiles(map, i, nodoors, area);
+
+			bool ceiling = false;
+			for (int n = 0; n < area.Size() && !ceiling; n++) { ceiling = area[n] && map.planes[1][n] == 70; }
+
+			if (ceiling) { warpedto[i] = true; continue; }
+
+			for (int n = 0; n < area.Size(); n++) { warpedto[n] = warpedto[n] || area[n]; }
+		}
+
 		for (int s = 0; s < level.sectors.Size(); s++)
 		{
 			Sector sec = level.sectors[s];
@@ -1059,6 +1174,15 @@ class SRRules : StaticEventHandler
 		}
 		if (!outside.Size()) { return; }
 
+		// One the flats code repaints: it passes over a closed pushwall's
+		outsideprobe = -1;
+		for (int s = 0; s < outside.Size() && outsideprobe < 0; s++)
+		{
+			Sector sec = level.sectors[outside[s]];
+			if (sec.CenterFloor() != sec.CenterCeiling() && map.ActorAt(ParsedMap.CoordsToGrid(sec.centerspot)) != 0x62) { outsideprobe = outside[s]; }
+		}
+		if (outsideprobe < 0) { return; }
+
 		let flats = ReplacementHandler(StaticEventHandler.Find("ReplacementHandler"));
 		if (!flats) { return; }
 
@@ -1068,8 +1192,8 @@ class SRRules : StaticEventHandler
 		zoned = true;
 		warped = true;
 		flats.CheckFlats(style);
-		outsidefloor = level.sectors[outside[0]].GetTexture(Sector.floor);
-		outsideceiling = level.sectors[outside[0]].GetTexture(Sector.ceiling);
+		outsidefloor = level.sectors[outsideprobe].GetTexture(Sector.floor);
+		outsideceiling = level.sectors[outsideprobe].GetTexture(Sector.ceiling);
 		warped = false;
 		flats.CheckFlats(style);
 		PaintOutside();
@@ -1100,6 +1224,11 @@ class SRRules : StaticEventHandler
 				flood.Push(n);
 			}
 		}
+	}
+
+	bool IsOutside(Sector sec)
+	{
+		return outside.Find(sec.Index()) < outside.Size();
 	}
 
 	void PaintOutside()

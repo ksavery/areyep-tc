@@ -12,6 +12,7 @@ enum, which EoD inherited from SR.
 POSITIONAL = [
     (0, 102),    # demo/deathcam, statics 23-74, guard
     (142, 306),  # SS, clone (mutant slot), officer, rockets/smoke
+    (322, 325),  # Angel of Death's fireball (SR draws it white)
     (326, 376),  # Grau Adler, Hiroshima Hyoto, Superclone, Baron von Schmitt
     (385, 420),  # Angel of Death slot, player knife/pistol/MG/Mk3
 ]
@@ -23,6 +24,7 @@ RENAMED = [
 
 # SR-only sprites: name -> VSWAP indices for frames A, B, C...
 EXTRA = {
+    "SRGD": [501, 502, 507, 508],  # Yellow ghost's death
     "SRMK": [421, 422, 423, 424, 425],  # Mk4 ready + attack
     "SRM4": [426],        # Mk4 pickup
     "SRKB": [427],        # blood key

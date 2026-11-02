@@ -43,6 +43,9 @@ class AReyePDevProbe : StaticEventHandler
 					String cmd = cmds[c].Mid(colon + 1);
 					if (cmd.Left(5) ~== "skill") { Menu.SetMenu('SkillMenu', 9); continue; } // the LEVEL episode, as New Game goes
 					if (cmd ~== "enter") { if (Menu.GetCurrentMenu()) { Menu.GetCurrentMenu().MenuEvent(Menu.MKEY_Enter, false); } continue; }
+					if (cmd ~== "confirm") { let typing = Menu.GetCurrentMenu(); if (typing && typing.mParentMenu) { typing.mParentMenu.MenuEvent(Menu.MKEY_Input, false); typing.Close(); } continue; } // the save menu's text box
+					if (cmd ~== "quick") { let info = SaveInfo.Get(); if (info) { info.WriteSave("Quicksave"); } continue; } // as F6
+					if (cmd ~== "down") { if (Menu.GetCurrentMenu()) { Menu.GetCurrentMenu().MenuEvent(Menu.MKEY_Down, false); } continue; }
 					if (cmd.Left(5) ~== "menu:") { Menu.SetMenu(cmd.Mid(5)); continue; } // menu CCMDs refuse to run from here
 
 					let item = new("OptionMenuItemSafeCommand");

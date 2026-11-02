@@ -191,7 +191,7 @@ class AReyePGame
 	// The ending sequence menu for the game being played
 	static clearscope Name FinaleMenu()
 	{
-		return CurrentFamily() == "EOD" ? 'EoDFinale' : 'SoDFinale';
+		return IsMCS(CurrentFamily()) ? 'EoDFinale' : 'SoDFinale';
 	}
 
 	// Points for a kill where the games differ from Wolf3D: MCS's KillActor
@@ -271,6 +271,7 @@ class AReyePGame
 		}
 
 		if (mo is "SRSuicideClone") { return eod ? 1 : 20, eod ? 1 : 20, eod ? 1 : 35, eod ? 1 : 50, true; }
+		if (mo is "SRYellowGhost") { return 25, 50, 75, 100, true; }
 		if (mo is "Guard") { return 40, 45, 55, 65, true; }
 		if (mo is "Officer") { return 80, 85, 95, 105, true; }
 		if (mo is "SS") { return 140, 155, 165, 175, true; }

@@ -546,10 +546,10 @@ SR
 		"";
 		"";
 		"";
-		"";
-		"";
-		"";
-		"";
+		"ADBLA0";
+		"ADBLB0";
+		"ADBLC0";
+		"ADBLD0";
 		"WBO2A1";
 		"WBO2B1";
 		"WBO2C1";
@@ -850,14 +850,14 @@ SR
 		"SRPEB0";
 		"SRB1A0";
 		"SRB1B0";
-		"";
-		"";
+		"SRGDA0";
+		"SRGDB0";
 		"SRWLB0";
 		"SRRDA0";
 		"SRBXA0";
 		"SRPUA0";
-		"";
-		"";
+		"SRGDC0";
+		"SRGDD0";
 		"SRPIA0";
 	}
 }

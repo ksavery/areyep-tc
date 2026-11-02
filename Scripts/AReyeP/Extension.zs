@@ -29,6 +29,14 @@ class AReyePExtension : GameExtension
 
 	override String DataSet(String ext) { return AReyePGame.Family(ext); }
 	override String Title(String ext) { return AReyePGame.Title(ext); }
+	override String ShortTitle(String title)
+	{
+		static const String exts[] = { "SR1", "SR2", "EOD", "WFD" };
+		static const String labels[] = { "SR1", "SR2", "EoD", "WFD" };
+		for (int e = 0; e < 4; e++) { if (AReyePGame.Title(exts[e]) == title) { return labels[e]; } }
+
+		return "";
+	}
 	override int GameType(String ext) { return AReyePGame.Family(ext) == "WFD" ? 0 : 1; } // Wolf3D or Spear rules; tables come from the game's family
 	override int MapNumber(String ext, int slot) { return AReyePGame.MapNumber(ext, slot); }
 

@@ -550,6 +550,10 @@ Sprite SCLNK0, 64, 64 { }
 Sprite SCLNE0, 64, 64 { }
 Sprite SCLNF0, 64, 64 { }
 Sprite SCLNG0, 64, 64 { }
+Sprite SRGDA0, 64, 64 { }
+Sprite SRGDB0, 64, 64 { }
+Sprite SRGDC0, 64, 64 { }
+Sprite SRGDD0, 64, 64 { }
 Sprite SRMKA0, 64, 64 { }
 Sprite SRMKB0, 64, 64 { }
 Sprite SRMKC0, 64, 64 { }

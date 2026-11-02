@@ -750,6 +750,10 @@ canvastexture "SCLNK0" 64 64 translucent offset 32 64
 canvastexture "SCLNE0" 64 64 translucent offset 32 64
 canvastexture "SCLNF0" 64 64 translucent offset 32 64
 canvastexture "SCLNG0" 64 64 translucent offset 32 64
+canvastexture "SRGDA0" 64 64 translucent offset 32 64
+canvastexture "SRGDB0" 64 64 translucent offset 32 64
+canvastexture "SRGDC0" 64 64 translucent offset 32 64
+canvastexture "SRGDD0" 64 64 translucent offset 32 64
 canvastexture "SRMKA0" 64 64 translucent offset -128 -97
 canvastexture "SRMKB0" 64 64 translucent offset -128 -97
 canvastexture "SRMKC0" 64 64 translucent offset -128 -97

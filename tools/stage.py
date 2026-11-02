@@ -48,6 +48,12 @@ FILES = [
     ("EOD_112.ZIP", "VGADICT.WL6", "VGADICT.EOD", None),
     ("EOD_112.ZIP", "VGAGRAPH.WL6", "VGAGRAPH.EOD", None),
     ("EOD_112.ZIP", "SPEAR.EXE", "SPEAR.EOD", None),  # for its game palette (tools/assets.py)
+    ("SRSDL2.ZIP", "ENDART1.RIP", "ENDART1.SR", None),  # Closing credits
+    ("SRSDL2.ZIP", "INTRART1.RIP", "INTRART1.SR", None),  # Level 13's capture, then the boss cards
+    ("SRSDL2.ZIP", "INTRART2.RIP", "INTRART2.SR", None),
+    ("SRSDL2.ZIP", "INTRART3.RIP", "INTRART3.SR", None),
+    ("SRSDL2.ZIP", "INTRART4.RIP", "INTRART4.SR", None),
+    ("SRSDL2.ZIP", "INTRART5.RIP", "INTRART5.SR", None),
     ("Spearres.zip", "HELPART.RIP", "HELPART.SR1", None),  # Read This! (EoD's is a VGAGRAPH chunk)
     # Wolfendoom: a Wolfenstein 3D mod, so stock WL6 layout throughout
     ("Wolfdoom.zip", "VSWAP.WL6", "VSWAP.WFD", "4f54abe0"),
