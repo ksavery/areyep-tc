@@ -813,6 +813,15 @@ class SRBlinkingLight : GreenCeilingLight
 			SRBL B 4 Bright;
 			Loop;
 	}
+
+	// The TC lights it every tic; its light goes out on the dark frame (B)
+	override void Tick()
+	{
+		Super.Tick();
+
+		if (frame == 1) { AReyePLights.Dark(self); }
+		else { AReyePLights.Boost(self, 56, 0x9090FF, 54); }
+	}
 }
 
 class SRIndoorTorch : SRSolidDecoration
@@ -961,6 +970,29 @@ class SRRules : StaticEventHandler
 	Array<int> outside; // Sectors in that area
 	int outsideprobe; // One of them to check they're still painted
 	TextureID outsidefloor, outsideceiling;
+
+	// SR with the TC's textures setting on: each room gets End of Destiny's floor
+	// and ceiling nearest its walls, an elevator the steel of its own walls, a
+	// doorway a threshold of its own (a door tile is one sector, so the rooms'
+	// floors can't meet under the door), and the outside earth under the night sky
+	int texmap;
+	Array<TextureID> texfloor, texceiling; // By sector
+	Array<double> texangle; // Turning a doorway's threshold to run along its door
+	int texprobe;
+	int texstyle; // 2: floors only, under the TC's own ceilings; 3: floors and ceilings
+	const ELEVATORTILE = 21;
+	const HIROSHIMA = 9; // Map slot
+	const AFTERLIFESLOT = 20; // Map slot: its "outside" is the afterlife
+	const RAMPARTS = 21; // Map slot: a castle top, under SR's sky blue (0x85) past its artefacts
+	const GREATESCAPE = 12; // Map slot: a dungeon, cobbled throughout
+	const COBBLES = 215;
+	const HEDGEFIRST = 66; // SR's hedges and plant walls (66-70): a path between them is outside
+	const HEDGELAST = 70;
+	const ELEVATORCODE = 22; // The elevator's steel walls
+	const ELEVATORCODE2 = 63; // Its other steel, the same panel on its east and west faces
+	const ELEVATORFLAT = 200; // The elevator floor and ceiling: End of Destiny's dark metal grid
+	const THRESHOLD = 219;
+	const EARTH = 197;
 	int stormtimer[3];
 	int ambienttimer;
 	bool needloadout[MAXPLAYERS];
@@ -1021,6 +1053,7 @@ class SRRules : StaticEventHandler
 
 		exittime = 0;
 		zonemap = 0;
+		texmap = 0;
 		slot = -1;
 		ambienttimer = 0;
 		for (int t = 0; t < 3; t++) { stormtimer[t] = 0; }
@@ -1054,6 +1087,7 @@ class SRRules : StaticEventHandler
 		if (level.maptime == 1) { StartLevel(); }
 		else if (slot < 0) { FindSlot(); } // A loaded save is past that
 		ZoneFlats();
+		TextureSR();
 		if (slot == 0) { Storm(); }
 		else if (slot == 20 || slot == 21 || slot == 22) { Ambience(); }
 	}
@@ -1065,9 +1099,42 @@ class SRRules : StaticEventHandler
 		slot = sr ? map.mapnum - AReyePGame.MapBase(map.extension) - 1 : -1;
 	}
 
+	// Afterlife's Fuehrer posters, with their death year painted out like its
+	// sarcophagus plaque's (SRAFTPS0-1, tools/assets.py)
+	void AfterlifePosters()
+	{
+		if (slot != AFTERLIFESLOT) { return; }
+
+		for (int page = 0; page < 2; page++)
+		{
+			TextureID from = TexMan.CheckForTexture(String.Format("SR/Wall%04i", 102 + page), TexMan.Type_Any);
+			TextureID to = TexMan.CheckForTexture(String.Format("SRAFTPS%i", page), TexMan.Type_Any);
+			if (!from.IsValid() || !to.IsValid()) { continue; }
+
+			for (int l = 0; l < level.lines.Size(); l++)
+			{
+				for (int k = 0; k < 2; k++)
+				{
+					Side sd = level.lines[l].sidedef[k];
+					if (sd && sd.GetTexture(Side.mid) == from) { sd.SetTexture(Side.mid, to); }
+				}
+			}
+		}
+	}
+
 	void StartLevel()
 	{
 		FindSlot();
+		AfterlifePosters();
+
+		// Afterlife opens with the gold key in hand
+		if (slot == AFTERLIFESLOT)
+		{
+			for (int p = 0; p < MAXPLAYERS; p++)
+			{
+				if (playeringame[p] && players[p].mo) { players[p].mo.GiveInventory("YellowKey", 1); }
+			}
+		}
 		bool sr = slot >= 0;
 		MarkBronzeDoors();
 
@@ -1098,6 +1165,7 @@ class SRRules : StaticEventHandler
 		ParsedMap map = handler ? handler.curmap : null;
 		String family = map ? AReyePGame.Family(map.extension) : "";
 		if (family != "SR" && family != "EOD") { zoned = false; return; }
+		if (family == "SR" && AReyePGame.SRFlatStyle() >= 2) { zoned = false; zonemap = 0; return; } // TextureSR's
 
 		// Until the clock starts, the flats code draws for the next map
 		if (level.time < 1) { return; }
@@ -1129,66 +1197,8 @@ class SRRules : StaticEventHandler
 		if (!differs) { return; }
 
 		Array<int> open;
-		Array<bool> reached;
-		open.Reserve(map.width * map.height);
-		reached.Reserve(map.width * map.height);
-
-		int start = -1;
-		for (int i = 0; i < open.Size(); i++)
-		{
-			TileInfo tile;
-			int t;
-			[t, tile] = map.TileAt((i % map.width, i / map.width));
-			int a = map.planes[1][i];
-			open[i] = (tile && tile.flags & (TileInfo.TILE_FLOOR | TileInfo.TILE_DOOR)) || a == 0x62;
-			reached[i] = false;
-			if (a >= 0x13 && a <= 0x16) { start = i; }
-		}
-		if (start < 0) { return; }
-
-		FloodTiles(map, start, open, reached);
-
-		// The outside: where an artefact lands you, if you can't walk there
 		Array<bool> warpedto;
-		warpedto.Reserve(open.Size());
-		for (int i = 0; i < open.Size(); i++) { warpedto[i] = false; }
-		for (int i = 0; i < open.Size(); i++)
-		{
-			int a = map.planes[1][i];
-			if ((a == 101 || a == 103) && !reached[i] && !warpedto[i]) { FloodTiles(map, i, open, warpedto); }
-		}
-
-		// Anywhere with trees or shrubs is outside too, up to its doors and secret
-		// walls. Hanging vines mean a ceiling: there, only the plants' own tiles are,
-		// which on SR2's Black Forest is a strip beyond a room's walls
-		Array<int> nodoors;
-		nodoors.Copy(open);
-		for (int i = 0; i < nodoors.Size(); i++)
-		{
-			TileInfo tile;
-			int t;
-			[t, tile] = map.TileAt((i % map.width, i / map.width));
-			if ((tile && tile.flags & TileInfo.TILE_DOOR) || map.planes[1][i] == 0x62) { nodoors[i] = false; }
-		}
-
-		Array<bool> area;
-		area.Reserve(open.Size());
-		for (int i = 0; i < open.Size(); i++)
-		{
-			int a = map.planes[1][i];
-			bool greenery = family == "SR" && (a == 64 || a == 65 || a == 68 || a == 69 || a == 71);
-			if (!greenery || !nodoors[i] || warpedto[i]) { continue; }
-
-			for (int n = 0; n < area.Size(); n++) { area[n] = false; }
-			FloodTiles(map, i, nodoors, area);
-
-			bool ceiling = false;
-			for (int n = 0; n < area.Size() && !ceiling; n++) { ceiling = area[n] && map.planes[1][n] == 70; }
-
-			if (ceiling) { warpedto[i] = true; continue; }
-
-			for (int n = 0; n < area.Size(); n++) { warpedto[n] = warpedto[n] || area[n]; }
-		}
+		if (!OutsideTiles(map, family, open, warpedto)) { return; }
 
 		for (int s = 0; s < level.sectors.Size(); s++)
 		{
@@ -1224,6 +1234,334 @@ class SRRules : StaticEventHandler
 		warped = false;
 		flats.CheckFlats(style);
 		PaintOutside();
+	}
+
+	void TextureSR()
+	{
+		MapHandler handler = MapHandler.Get();
+		ParsedMap map = handler ? handler.curmap : null;
+		int style = map ? AReyePGame.SRFlatStyle() : 0;
+		if (!map || AReyePGame.Family(map.extension) != "SR" || style < 2 || level.time < 1) { texmap = 0; return; }
+
+		if (texmap != map.mapnum || texstyle != style)
+		{
+			texstyle = style;
+			texmap = map.mapnum;
+			PlanTextures(map);
+			PaintTextures();
+			return;
+		}
+
+		// The flats code repaints the whole level when its setting changes or a warp
+		// switches SR's colours
+		if (texprobe >= 0 && level.sectors[texprobe].GetTexture(Sector.floor) != texfloor[texprobe]) { PaintTextures(); }
+	}
+
+	void PaintTextures()
+	{
+		bool sky = false;
+		for (int s = 0; s < texfloor.Size(); s++)
+		{
+			if (!texfloor[s].IsValid()) { continue; }
+
+			level.sectors[s].SetTexture(Sector.floor, texfloor[s]);
+			level.sectors[s].SetAngle(Sector.floor, texangle[s]);
+			if (texstyle < 3) { continue; }
+			level.sectors[s].SetTexture(Sector.ceiling, texceiling[s]);
+			level.sectors[s].SetAngle(Sector.ceiling, texangle[s]);
+			sky = sky || texceiling[s] == skyflatnum;
+		}
+
+		if (sky) { AReyePExtension.StarSky(); }
+	}
+
+	// Rooms: open tiles between doors and secret walls, each with the floor and
+	// ceiling of the wall around it most (-1 for an elevator's)
+	void PlanRooms(ParsedMap map, Array<int> open, out Array<int> room, out Array<int> floorpage, out Array<int> ceilingpage, out Array<bool> outdoorroom)
+	{
+		int size = map.width * map.height;
+		Array<int> votes;
+		room.Clear();
+		floorpage.Clear();
+		ceilingpage.Clear();
+		outdoorroom.Clear();
+		room.Reserve(size);
+		votes.Reserve(90);
+		for (int i = 0; i < size; i++) { room[i] = -1; }
+
+		for (int i = 0; i < size; i++)
+		{
+			if (room[i] >= 0 || !open[i] || IsDoorway(map, i)) { continue; }
+
+			int id = floorpage.Size();
+			for (int v = 0; v < votes.Size(); v++) { votes[v] = 0; }
+			bool elevator = false;
+
+			Array<int> flood;
+			flood.Push(i);
+			room[i] = id;
+			while (flood.Size())
+			{
+				int t = flood[flood.Size() - 1];
+				flood.Pop();
+
+				for (int d = 0; d < 4; d++)
+				{
+					int nx = t % map.width + (d == 0 ? 1 : d == 1 ? -1 : 0);
+					int ny = t / map.width + (d == 2 ? 1 : d == 3 ? -1 : 0);
+					if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) { continue; }
+
+					int n = ny * map.width + nx;
+					int code = map.planes[0][n];
+					if (!open[n] || IsDoorway(map, n))
+					{
+						if (code >= 1 && code < votes.Size()) { votes[code]++; }
+						elevator = elevator || code == ELEVATORTILE;
+						continue;
+					}
+					if (room[n] >= 0) { continue; }
+
+					room[n] = id;
+					flood.Push(n);
+				}
+			}
+
+			int best = 0;
+			for (int v = 1; v < votes.Size(); v++) { if (votes[v] > votes[best]) { best = v; } }
+
+			elevator = elevator || best == ELEVATORCODE || best == ELEVATORCODE2; // a start elevator has no switch
+			outdoorroom.Push(best >= HEDGEFIRST && best <= HEDGELAST); // walled in hedges and plants
+			floorpage.Push(elevator ? -1 : best ? SRFlatTable.floors[best] : 205);
+			ceilingpage.Push(elevator ? -1 : best ? SRFlatTable.ceilings[best] : 210);
+		}
+
+	}
+
+	void PlanTextures(ParsedMap map)
+	{
+		int size = map.width * map.height;
+		texfloor.Clear();
+		texceiling.Clear();
+		texfloor.Reserve(level.sectors.Size());
+		texceiling.Reserve(level.sectors.Size());
+		texangle.Clear();
+		for (int s = 0; s < level.sectors.Size(); s++) { texangle.Push(0); } // (Reserve leaves doubles unset)
+		texprobe = -1;
+
+		Array<int> open;
+		Array<bool> outdoors;
+		// Where an artefact takes you is outside only where SR colours it as sky;
+		// Admin Blues' and Torture Room's, say, are more of the building
+		if (!OutsideTiles(map, "SR", open, outdoors, WarpsOutside(map)))
+		{
+			outdoors.Clear();
+			for (int i = 0; i < size; i++) { outdoors.Push(false); }
+		}
+
+		Array<int> room, floorpage, ceilingpage;
+		Array<bool> outdoorroom;
+		PlanRooms(map, open, room, floorpage, ceilingpage, outdoorroom);
+
+		// Level 18's Spear takes you straight into Afterlife, in the rooms you were
+		// in (the Spear's and the one before): wherever the two maps match, level 18
+		// takes Afterlife's floors and ceilings, so nothing changes as you cross over
+		bool afterlife = AReyePGame.SlotOf(map) == AFTERLIFESLOT;
+		bool spearlevel = AReyePGame.SlotOf(map) == AFTERLIFESLOT - 3;
+		Array<int> sharedfloor, sharedceiling; // pages; -1 the elevator's, -2 none, -3 black
+		if (spearlevel)
+		{
+			MapHandler handler = MapHandler.Get();
+			ParsedMap after = handler ? handler.parsedmaps.GetMapDataByNumber(map.mapnum + 3, map.datafile.path) : null;
+			Array<int> afteropen, afterroom, afterfloor, afterceiling;
+			Array<bool> afteroutside, afteroutdoorroom;
+			if (after && after.width == map.width && after.height == map.height)
+			{
+				if (!OutsideTiles(after, "SR", afteropen, afteroutside, WarpsOutside(after))) { afteroutside.Clear(); }
+				PlanRooms(after, afteropen, afterroom, afterfloor, afterceiling, afteroutdoorroom);
+			}
+			for (int i = 0; i < size; i++)
+			{
+				int r = afterroom.Size() ? afterroom[i] : -1;
+				bool same = r >= 0 && open[i] && map.planes[0][i] == after.planes[0][i];
+				bool outside = same && ((afteroutside.Size() && afteroutside[i]) || afteroutdoorroom[r]);
+				sharedfloor.Push(!same ? -2 : outside ? COBBLES : afterfloor[r]);
+				sharedceiling.Push(!same ? -2 : outside ? -3 : afterceiling[r]);
+			}
+		}
+
+		TextureID earth = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", EARTH), TexMan.Type_Any);
+		TextureID skyblue = TexMan.CheckForTexture("85", TexMan.Type_Any);
+		bool ramparts = AReyePGame.SlotOf(map) == RAMPARTS;
+		bool dungeon = AReyePGame.SlotOf(map) == GREATESCAPE;
+		TextureID black = TexMan.CheckForTexture("00", TexMan.Type_Any);
+		TextureID cobbles = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", COBBLES), TexMan.Type_Any);
+		TextureID threshold = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", THRESHOLD), TexMan.Type_Any);
+		TextureID steel = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", ELEVATORFLAT), TexMan.Type_Any);
+		for (int s = 0; s < level.sectors.Size(); s++)
+		{
+			Sector sec = level.sectors[s];
+			// (closed ones too: a pushwall's opens later)
+			if (abs(sec.centerspot.x) > 4096 || abs(sec.centerspot.y) > 4096) { continue; }
+
+			Vector2 pos = ParsedMap.CoordsToGrid(sec.centerspot);
+			int i = int(pos.y) * map.width + int(pos.x);
+			if (i < 0 || i >= size) { continue; }
+
+			if (spearlevel && sharedfloor[i] > -2 && !(room[i] >= 0 && floorpage[room[i]] < 0)) // (its own elevators stay elevators)
+			{
+				texfloor[s] = sharedfloor[i] < 0 ? steel : TexMan.CheckForTexture(String.Format("EoD/Wall%04i", sharedfloor[i]), TexMan.Type_Any);
+				texceiling[s] = sharedceiling[i] == -3 ? black : sharedceiling[i] < 0 ? steel : TexMan.CheckForTexture(String.Format("EoD/Wall%04i", sharedceiling[i]), TexMan.Type_Any);
+			}
+			else if (outdoors[i] || (room[i] >= 0 && outdoorroom[room[i]]))
+			{
+				// Past Afterlife's artefacts is no sky, only the dark over cobbles
+				texfloor[s] = afterlife ? cobbles : earth;
+				texceiling[s] = afterlife ? black : skyflatnum;
+			}
+			else if (room[i] >= 0 && floorpage[room[i]] < 0)
+			{
+				texfloor[s] = steel;
+				texceiling[s] = steel;
+			}
+			else if (room[i] >= 0)
+			{
+				texfloor[s] = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", floorpage[room[i]]), TexMan.Type_Any);
+				texceiling[s] = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", ceilingpage[room[i]]), TexMan.Type_Any);
+			}
+			else if (open[i] && map.planes[1][i] != 0x62)
+			{
+				texfloor[s] = threshold;
+				texceiling[s] = threshold;
+
+				// Its slabs run along the door: across a north-south passage
+				int x = i % map.width, y = i / map.width;
+				bool eastwest = (x > 0 && open[i - 1]) || (x < map.width - 1 && open[i + 1]);
+				texangle[s] = eastwest ? 0 : 90;
+			}
+			else
+			{
+				// Anything else (a pushwall's tile) as the area beside it
+				for (int d = 0; d < 4 && !texfloor[s].IsValid(); d++)
+				{
+					int nx = int(pos.x) + (d == 0 ? 1 : d == 1 ? -1 : 0);
+					int ny = int(pos.y) + (d == 2 ? 1 : d == 3 ? -1 : 0);
+					if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) { continue; }
+					int n = ny * map.width + nx;
+					if (outdoors[n] || (room[n] >= 0 && outdoorroom[room[n]])) { texfloor[s] = earth; texceiling[s] = skyflatnum; }
+					else if (room[n] >= 0 && floorpage[room[n]] >= 0)
+					{
+						texfloor[s] = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", floorpage[room[n]]), TexMan.Type_Any);
+						texceiling[s] = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", ceilingpage[room[n]]), TexMan.Type_Any);
+					}
+				}
+				if (!texfloor[s].IsValid()) { continue; }
+			}
+
+			// The dungeon: cobbles underfoot in every room
+			if (dungeon && room[i] >= 0 && floorpage[room[i]] >= 0) { texfloor[s] = cobbles; }
+
+			// The ramparts: castle stone underfoot, and on top (past the artefacts,
+			// which SR colours blue) the open sky, as their walls' tops are
+			if (ramparts && texfloor[s].IsValid() && (outdoors[i] || (room[i] >= 0 && outdoorroom[room[i]])))
+			{
+				if (room[i] >= 0 && floorpage[room[i]] >= 0) { texfloor[s] = TexMan.CheckForTexture(String.Format("EoD/Wall%04i", floorpage[room[i]]), TexMan.Type_Any); }
+				texceiling[s] = skyblue;
+			}
+
+			if (texprobe < 0 && sec.CenterFloor() != sec.CenterCeiling() && map.ActorAt(pos) != 0x62) { texprobe = s; }
+		}
+	}
+
+	// SR colours the area past a map's artefacts as a sky, black or Ramparts'
+	// blue (0x85); where it only changes one indoor colour for another, as on
+	// Torture Room, it's more of the building
+	static bool WarpsOutside(ParsedMap map)
+	{
+		String game = map.extension.MakeUpper();
+		int slot = AReyePGame.SlotOf(map);
+		int ceiling, floor, warpedceiling, warpedfloor;
+		[ceiling, floor] = AReyePGame.Flats(game, slot, false);
+		[warpedceiling, warpedfloor] = AReyePGame.Flats(game, slot, true);
+		return warpedceiling != ceiling && (warpedceiling == 0x00 || warpedceiling == 0x85);
+	}
+
+	static bool IsDoorway(ParsedMap map, int i)
+	{
+		TileInfo tile;
+		int t;
+		[t, tile] = map.TileAt((i % map.width, i / map.width));
+		return (tile && tile.flags & TileInfo.TILE_DOOR) || map.planes[1][i] == 0x62;
+	}
+
+	// The outside of a map: where an artefact lands you, if you can't walk there
+	// from the start, and anywhere green (SR's trees and shrubs) up to its doors
+	bool OutsideTiles(ParsedMap map, String family, out Array<int> open, out Array<bool> warpedto, bool warpsoutside = true)
+	{
+		Array<bool> reached;
+		open.Clear();
+		open.Reserve(map.width * map.height);
+		reached.Reserve(map.width * map.height);
+
+		int start = -1;
+		for (int i = 0; i < open.Size(); i++)
+		{
+			TileInfo tile;
+			int t;
+			[t, tile] = map.TileAt((i % map.width, i / map.width));
+			int a = map.planes[1][i];
+			open[i] = (tile && tile.flags & (TileInfo.TILE_FLOOR | TileInfo.TILE_DOOR)) || a == 0x62;
+			reached[i] = false;
+			if (a >= 0x13 && a <= 0x16) { start = i; }
+		}
+		if (start < 0) { return false; }
+
+		FloodTiles(map, start, open, reached);
+
+		warpedto.Clear();
+		warpedto.Reserve(open.Size());
+		for (int i = 0; i < open.Size(); i++) { warpedto[i] = false; }
+		for (int i = 0; i < open.Size(); i++)
+		{
+			int a = map.planes[1][i];
+			if (warpsoutside && (a == 101 || a == 103) && !reached[i] && !warpedto[i]) { FloodTiles(map, i, open, warpedto); }
+		}
+
+		// Anywhere with trees or shrubs is outside too, up to its doors and secret
+		// walls. Hanging vines mean a ceiling: there, only the plants' own tiles are,
+		// which on SR2's Black Forest is a strip beyond a room's walls
+		Array<int> nodoors;
+		nodoors.Copy(open);
+		for (int i = 0; i < nodoors.Size(); i++)
+		{
+			TileInfo tile;
+			int t;
+			[t, tile] = map.TileAt((i % map.width, i / map.width));
+			if ((tile && tile.flags & TileInfo.TILE_DOOR) || map.planes[1][i] == 0x62) { nodoors[i] = false; }
+		}
+
+		// Hiroshima (level 10 of both mapsets) is all indoors: its bonsai are pot plants
+		bool indoorplants = AReyePGame.SlotOf(map) == HIROSHIMA;
+
+		Array<bool> area;
+		area.Reserve(open.Size());
+		for (int i = 0; i < open.Size(); i++)
+		{
+			int a = map.planes[1][i];
+			bool greenery = family == "SR" && !indoorplants && (a == 64 || a == 65 || a == 68 || a == 69 || a == 71);
+			if (!greenery || !nodoors[i] || warpedto[i]) { continue; }
+
+			for (int n = 0; n < area.Size(); n++) { area[n] = false; }
+			FloodTiles(map, i, nodoors, area);
+
+			bool ceiling = false;
+			for (int n = 0; n < area.Size() && !ceiling; n++) { ceiling = area[n] && map.planes[1][n] == 70; }
+
+			if (ceiling) { warpedto[i] = true; continue; }
+
+			for (int n = 0; n < area.Size(); n++) { warpedto[n] = warpedto[n] || area[n]; }
+		}
+
+		return true;
 	}
 
 	void FloodTiles(ParsedMap map, int start, Array<int> open, out Array<bool> reached)

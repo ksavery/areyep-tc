@@ -78,7 +78,7 @@ class MCSRules : EventHandler
 			Array<Inventory> eodguns;
 			for (Inventory inv = mo.Inv; inv; inv = inv.Inv)
 			{
-				if (inv is "EoDRifle" || inv is "EoDRocketLauncher" || inv is "EoDSpear") { eodguns.Push(inv); }
+				if (inv is "EoDRifle" || inv is "EoDRocketLauncher" || inv is "EoDSpear" || inv is "EoDMedkit" || inv is "EoDPortableMedkit") { eodguns.Push(inv); }
 			}
 
 			for (int g = 0; g < eodguns.Size(); g++)

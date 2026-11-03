@@ -169,6 +169,14 @@ class AReyePGame
 		return TexMan.CheckForTexture(name, usetype);
 	}
 
+	// End of Destiny's own options are shown for it alone
+	static ui bool MenuIsEoD()
+	{
+		String family = CurrentFamily();
+		if (family == "") { family = Family(g_modgame); }
+		return family == "EOD";
+	}
+
 	// The menus look like the game being played, else the one picked
 	static ui bool MenuFamily()
 	{
@@ -335,7 +343,7 @@ class AReyePGame
 		ParsedMap pm = handler ? (handler.curmap ? handler.curmap : handler.queuedmap) : null;
 		if (pm && pm.extension ~== "SR2") { return 64; }
 
-		return setting;
+		return 2; // the DOS games' own, whatever the TC's option says (it isn't in this mod's menu)
 	}
 
 	// Actor codes End of Destiny sets in wall tiles, which stay walls: switches
@@ -345,6 +353,17 @@ class AReyePGame
 		if (Family(ext) != "EOD") { return false; }
 		return (code >= 384 && code <= 388) || (code >= 400 && code <= 415);
 	}
+
+	// End of Destiny's look options (user CVars can't be read directly)
+	static clearscope int EoDOption(Name option)
+	{
+		CVar cv = CVar.GetCVar(option, players[consoleplayer]);
+		return cv ? cv.GetInt() : 1;
+	}
+
+	static clearscope bool EoDClouds() { return EoDOption('areyep_eodclouds'); }
+	// The TC's floor/ceiling setting: 0 none, 1 minimal, 2 textured floors, 3 both
+	static clearscope int SRFlatStyle() { return EoDOption('g_useflats'); }
 
 	// EoD's row 0 cells 4, 5 (6, 7 after a teleport) hold the level's sky modes;
 	// any but 0 puts the star sky in place of the ceiling (DrawStarSky, image

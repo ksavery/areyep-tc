@@ -63,7 +63,7 @@ class EoDWeather : StaticEventHandler
 		// A steady snowfall falls at full strength (MCS would keep whatever count
 		// the last changing level left, none at all after a new game)
 		int count = varies ? flakes : MAXFLAKES;
-		if (mo && count > 0) { Snow(mo, pm, count); }
+		if (mo && count > 0 && AReyePGame.EoDOption('areyep_eodsnow')) { Snow(mo, pm, count); }
 	}
 
 	void Step()
@@ -181,6 +181,7 @@ class EoDWeather : StaticEventHandler
 	// at the full 300 that's ten a tic
 	void Snow(Actor mo, ParsedMap pm, int count)
 	{
+		bool wholelevel = AReyePGame.EoDOption('areyep_eodsnowarea') == 1;
 		int spawns = count * 10 / MAXFLAKES;
 		if (Random[EoDSnow](0, MAXFLAKES - 1) < count * 10 % MAXFLAKES) { spawns++; }
 
@@ -189,7 +190,7 @@ class EoDWeather : StaticEventHandler
 			Vector2 at = mo.pos.xy + (FRandom[EoDSnow](-320, 320), FRandom[EoDSnow](-320, 320));
 			Vector2 grid = ParsedMap.CoordsToGrid(at);
 			if (grid.x < 0 || grid.y < 1 || grid.x >= pm.width || grid.y >= pm.height) { continue; }
-			if (!outdoors[int(grid.y) * pm.width + int(grid.x)]) { continue; }
+			if (!wholelevel && !outdoors[int(grid.y) * pm.width + int(grid.x)]) { continue; }
 
 			Sector sec = level.PointInSector(at);
 			double floorz = sec.floorplane.ZAtPoint(at), ceilz = sec.ceilingplane.ZAtPoint(at);

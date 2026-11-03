@@ -53,3 +53,19 @@ user string areyep_highscore_wfd_4 = "";
 user string areyep_highscore_wfd_5 = "";
 user string areyep_highscore_wfd_6 = "";
 user string areyep_highscore_wfd_7 = "";
+
+// End of Destiny's look, which both originals let the player switch in game:
+// clouds over the star sky (eod4sdl's, so off as in the original), snow,
+// distance shading, and where the snow falls (0 the outdoor areas, 1 the whole
+// level as MCS did). Its textured floors and ceilings are always on, as they
+// always were; SR's follow the TC's g_useflats.
+user bool areyep_eodclouds = false;
+user bool areyep_eodsnow = true;
+user int areyep_eodsnowarea = 0;
+
+// Distance shading in every AReyeP game: End of Destiny's (both originals have
+// it), and its lighter one for SR and Wolfendoom. 0 off, 1 the originals', 2 darkest
+user float areyep_shadestrength = 1.0;
+
+// Which of AReyePDefaults' option defaults this config has had (it sets each once)
+user int areyep_defaults = 0;

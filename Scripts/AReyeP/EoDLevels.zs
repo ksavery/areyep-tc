@@ -45,10 +45,13 @@ class EoDLevelRules : EventHandler
 		survival = 0;
 		flamecount = 0;
 		greeddone = greedgoal = false;
-		if (e.IsSaveGame || AReyePGame.CurrentFamily() != "EOD") { return; }
+		if (e.IsSaveGame || AReyePGame.CurrentFamily() == "") { return; }
 
 		int slot = AReyePGame.CurrentSlot();
 		Shade(slot);
+		optionsknown = true;
+		if (AReyePGame.CurrentFamily() != "EOD") { return; }
+
 		UncountPushwalls();
 		EoDTextLog log = EoDTextLog(StaticEventHandler.Find("EoDTextLog"));
 		if (log && LevelText(slot)) { log.Queue(LevelText(slot)); }
@@ -79,7 +82,7 @@ class EoDLevelRules : EventHandler
 			for (Inventory item = mo.inv; item;)
 			{
 				Inventory next = item.inv;
-				if (item is "Weapon" || item is "Ammo" || item is "EoDPortableMedkit") { item.Destroy(); }
+				if (item is "Weapon" || item is "Ammo") { item.Destroy(); } // Medkits are ammo too
 				item = next;
 			}
 
@@ -153,26 +156,93 @@ class EoDLevelRules : EventHandler
 		}
 	}
 
-	// eod4sdl's distance shading, which the DOS game doesn't have: each of Kyle
-	// Albert's beta maps holds a strength (1, or 2 for darker nearer) and a colour
+	// Distance shading, which both originals have (and switch with Backspace+S):
+	// the strengths are eod4sdl's, where each of Kyle Albert's beta maps holds a strength (1, or 2 for darker nearer) and a colour
 	// to shade towards in row 0 (wl_game.cpp feature flags). Near-black for all
 	// but Hell on Earth (red). UZDoom's light falloff stands in for his tables.
 	static const int shadestrength[] = { 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1 };
 	const SHADELIGHT1 = 255;
 	const SHADELIGHT2 = 224;
 
+	int shaded; // How far Shade dimmed the level, while it's shaded
+	bool shading;
+
+	// The other games get End of Destiny's lighter shading, towards near-black
 	void Shade(int slot)
 	{
-		if (slot < 0 || slot >= shadestrength.Size()) { return; }
+		shading = ShadingSlider() > 0;
+		if (!shading || slot < 0) { return; }
 
-		int light = shadestrength[slot] == 2 ? SHADELIGHT2 : SHADELIGHT1;
+		shaded = ShadeAmount(slot);
+		if (AReyePGame.CurrentFamily() != "EOD") { slot = -1; }
+
 		for (int s = 0; s < level.sectors.Size(); s++)
 		{
 			Sector sec = level.sectors[s];
-			sec.SetLightLevel(min(sec.lightlevel, light));
+			sec.SetLightLevel(sec.lightlevel - shaded);
 			sec.SetFade(slot == 25 ? 0xC80000 : 0x040404); // Hell on Earth's red, else near-black
 		}
 	}
+
+	// The shading slider: 0 off, 1 the originals' (End of Destiny's amount for each
+	// level), up to 2 darker still. With dynamic lights on, darker again, so the lamps
+	// light their surroundings
+	const DARKER = 64;
+	const DIMFORLAMPS = 56;
+
+	static double ShadingSlider()
+	{
+		CVar cv = CVar.GetCVar("areyep_shadestrength", players[consoleplayer]);
+		return cv ? cv.GetFloat() : 1.0;
+	}
+
+	int ShadeAmount(int slot)
+	{
+		double strength = ShadingSlider();
+		bool eod = AReyePGame.CurrentFamily() == "EOD";
+		int base = eod && slot >= 0 && slot < shadestrength.Size() && shadestrength[slot] == 2 ? 255 - SHADELIGHT2 : 255 - SHADELIGHT1;
+		int amount = int(base * min(strength, 1.0) + max(strength - 1.0, 0.0) * DARKER);
+		return amount + (AReyePGame.EoDOption('g_dynamiclights') ? DIMFORLAMPS : 0);
+	}
+
+	void Unshade()
+	{
+		shading = false;
+		for (int s = 0; s < level.sectors.Size(); s++)
+		{
+			Sector sec = level.sectors[s];
+			sec.SetLightLevel(sec.lightlevel + shaded);
+			sec.SetFade(0);
+		}
+		shaded = 0;
+	}
+
+	// The look options, changed during a level
+	void UpdateOptions()
+	{
+		// Saves from before these options: their level was shaded and textured
+		if (!optionsknown)
+		{
+			optionsknown = true;
+			int slot = AReyePGame.CurrentSlot();
+			shading = AReyePGame.CurrentFamily() == "EOD" && slot >= 0 && slot < shadestrength.Size();
+			if (shading) { shaded = 255 - (shadestrength[slot] == 2 ? SHADELIGHT2 : SHADELIGHT1); }
+		}
+
+		bool shade = ShadingSlider() > 0;
+		if (shade && !shading) { Shade(AReyePGame.CurrentSlot()); }
+		else if (!shade && shading) { Unshade(); }
+		else if (shading && ShadeAmount(AReyePGame.CurrentSlot()) != shaded)
+		{
+			int change = ShadeAmount(AReyePGame.CurrentSlot()) - shaded;
+			for (int s = 0; s < level.sectors.Size(); s++) { level.sectors[s].SetLightLevel(level.sectors[s].lightlevel - change); }
+			shaded += change;
+		}
+
+		UpdateClouds();
+	}
+
+	bool optionsknown;
 
 	override void WorldTick()
 	{
@@ -182,8 +252,8 @@ class EoDLevelRules : EventHandler
 			level.ExitLevel(0, false);
 		}
 
-		if (AReyePGame.CurrentFamily() != "EOD") { return; }
-		if (level.maptime % 35) { return; }
+		if (AReyePGame.CurrentFamily() != "" && level.maptime % 35 == 0) { UpdateOptions(); }
+		if (AReyePGame.CurrentFamily() != "EOD" || level.maptime % 35) { return; }
 
 		if (AReyePGame.CurrentSlot() == 30) { Greed(); }
 
@@ -261,6 +331,17 @@ class EoDLevelRules : EventHandler
 			enemy.goal = greedspot;
 			enemy.goalmode = enemy is "SRSuicideClone" && !greeddone ? 2 : 1;
 		}
+	}
+
+	// The clouds option, changed during a sky level
+	static void UpdateClouds()
+	{
+		TextureID stars = TexMan.CheckForTexture("EODSKY", TexMan.Type_Any);
+		TextureID clouds = TexMan.CheckForTexture("EODCLOUD", TexMan.Type_Any);
+		if (!stars.IsValid() || !clouds.IsValid()) { return; }
+
+		if (AReyePGame.EoDClouds() && level.skytexture1 == stars && level.skytexture2 == stars) { level.ChangeSky(clouds, stars); level.skyspeed1 = 0.002; }
+		else if (!AReyePGame.EoDClouds() && level.skytexture1 == clouds) { level.ChangeSky(stars, stars); level.skyspeed1 = 0; }
 	}
 
 	// Once a second: the fireplace (0x4E) and hell wall (0x57) burn 1 health off
