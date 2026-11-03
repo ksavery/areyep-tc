@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from tcpath import ROOT, TC
 
-SKIP_DIRS = {".git", "tools", "docs", "run", "__pycache__", ".vscode"}
+SKIP_DIRS = {".git", "tools", "docs", "release", "run", "__pycache__", ".vscode"}
 SKIP_FILES = {"README.md", ".gitignore", ".gitattributes"}
 
 
