@@ -275,18 +275,22 @@ class EoDFury : WolfBerserk
 	}
 }
 
-// Portable medkit: carried and used later (+25%)
-class EoDPortableMedkit : CustomInventory
+// Portable medkits (eod4sdl wp_medkit): carried like ammo, two at a time or four
+// with a backpack, and taken out like a weapon on key 9. Firing heals 25 when
+// hurt and uses one; at full health, or with none left, it goes back to the
+// weapon before
+class EoDPortableMedkit : Ammo
 {
 	Default
 	{
 		//$Category End of Destiny/Health
 		//$Title Portable Medkit
-		+Inventory.INVBAR
-		Inventory.MaxAmount 3;
-		Inventory.InterHubAmount 3;
+		Inventory.Amount 1;
+		Inventory.MaxAmount 2;
+		Ammo.BackpackAmount 0;
+		Ammo.BackpackMaxAmount 4;
 		Inventory.PickupSound "pickups/medkit";
-		Inventory.PickupMessage "You picked up a portable medkit"; // MCS's message (EoD shows it, SR prints none)
+		Inventory.PickupMessage "You picked up a portable medkit"; // MCS's message
 		Inventory.Icon "HLTHE0";
 	}
 
@@ -295,13 +299,78 @@ class EoDPortableMedkit : CustomInventory
 		Spawn:
 			D097 A -1; // SPR_STAT_PORTMED
 			Stop;
-		Use:
-			TNT1 A 0 {
-				if (health >= 100) { return false; }
-				A_GiveInventory("Health", 25);
-				return true;
-			}
-			Fail;
+	}
+
+	override bool TryPickup(in out Actor toucher)
+	{
+		if (!Super.TryPickup(toucher)) { return false; }
+
+		if (!toucher.FindInventory("EoDMedkit")) { toucher.GiveInventory("EoDMedkit", 1); }
+		return true;
+	}
+}
+
+class EoDMedkit : ClassicWeapon
+{
+	Class<Weapon> previous;
+
+	Default
+	{
+		Tag "Portable Medkit";
+		Weapon.SlotNumber 9;
+		Weapon.SelectionOrder 10000;
+		Weapon.AmmoType "EoDPortableMedkit";
+		Weapon.AmmoUse 1;
+		Weapon.AmmoGive 0;
+		+Weapon.NOAUTOFIRE
+		+Weapon.NO_AUTO_SWITCH
+		+Weapon.CHEATNOTWEAPON
+	}
+
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+			Stop;
+		Ready:
+			TNT1 A 1 A_WeaponReady(); // Nothing in hand: eod4sdl draws no weapon for it
+			Loop;
+		Select:
+			TNT1 A 1 A_Raise(12);
+			Loop;
+		Deselect:
+			TNT1 A 1 A_Lower(12);
+			Loop;
+		Fire:
+			TNT1 A 1 A_UseMedkit();
+			Goto Ready;
+	}
+
+	// The weapon to go back to: whatever was in hand before this
+	override void DoEffect()
+	{
+		Super.DoEffect();
+
+		if (owner && owner.player && owner.player.ReadyWeapon && owner.player.ReadyWeapon != self)
+		{
+			previous = owner.player.ReadyWeapon.GetClass();
+		}
+	}
+
+	action void A_UseMedkit()
+	{
+		if (health < 100)
+		{
+			GiveBody(25, 100);
+			A_StartSound("eod/sound7", CHAN_ITEM); // NAZIHITPLAYERSND
+			if (player) { player.bonuscount = 6; }
+			invoker.DepleteAmmo(false);
+
+			if (CountInv("EoDPortableMedkit") > 0) { return; }
+		}
+
+		if (invoker.previous) { A_SelectWeapon(invoker.previous); }
+		else { player.mo.PickNextWeapon(); }
 	}
 }
 
@@ -548,6 +617,15 @@ class EoDBlinkingLight : EoDObjBlueCeilingLight
 		Dark:
 			D030 A 2;
 			Goto Spawn;
+	}
+
+	// Its light goes out with the lamp (D030 is the dark frame)
+	override void Tick()
+	{
+		Super.Tick();
+
+		if (sprite == GetSpriteIndex("D030")) { AReyePLights.Dark(self); }
+		else { AReyePLights.LampLight(self); }
 	}
 }
 

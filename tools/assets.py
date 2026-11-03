@@ -432,6 +432,13 @@ def eod_starsky(image, pal):
         if 0 <= py < STARSKY_H:
             sky.putpixel((px, py), pal[15 + shade])
 
+    # Kyle's stars only reach the top of the DOS-sized view, about 17 degrees up;
+    # a free view sees far more sky, so the rest of it gets stars as sparse
+    top = max(STARSKY_HORIZON - int(18 * perdeg), 0)
+    density = 300 / (STARSKY_W * (STARSKY_HORIZON - top))
+    for _ in range(int(density * STARSKY_W * top)):
+        sky.putpixel((rnd.randrange(STARSKY_W), rnd.randrange(top)), pal[15 + rnd.randrange(16)])
+
     moon = image[EOD_MOON:EOD_MOON + 100]
     mx = int(45 * perdeg) - 5
     my = int(STARSKY_HORIZON - math.degrees(math.atan2(49.5, 256)) * perdeg) - 5
@@ -648,6 +655,32 @@ def music_chunks(head, audiot, start):
     return [audiot[offs[i]:offs[i + 1]] for i in range(start, len(offs) - 1)]
 
 
+# Afterlife's "Der Fuehrer 1889-1945" posters (wall code 52, VSWAP pages 102 and
+# 103) with the death year painted out, as its sarcophagus plaque has none
+AFTERLIFE_POSTER_PAGES = (102, 103)
+AFTERLIFE_POSTER_DATE = (35, 44, 50, 49)  # left, top, right, bottom of "1945"
+
+
+def afterlife_posters(staged):
+    sys.path.insert(0, str(Path(__file__).parent))
+    import wolfdata
+    from sheet import render_wall
+    vs = wolfdata.VSwap(wolfdata.read(str(staged.joinpath("VSWAP.SR"))))
+    spear = vgagraph.load_palette(TC / "Data/Palettes/Spear.pal")
+    left, top, right, bottom = AFTERLIFE_POSTER_DATE
+    out = []
+    for page in AFTERLIFE_POSTER_PAGES:
+        img = render_wall(vs, page, spear).convert("RGB")
+        for x in range(left, right):
+            background = img.getpixel((x, top - 1))
+            for y in range(top, bottom):
+                img.putpixel((x, y), background)
+        buf = io.BytesIO()
+        img.save(buf, "PNG")
+        out.append(buf.getvalue())
+    return out
+
+
 def imf_lump(chunk):
     """An AUDIOT song (16-bit length, then IMF data) in the TC's wrapping: ZMusic's
     "ADLIB" header, then a 32-bit length."""
@@ -699,6 +732,9 @@ def main():
         for i in range(len(vg.picsizes)):  # every picture, for Read This!'s ^G
             w, h = vg.picsizes[i]
             tex.append('Graphic SRV%04d, %d, %d { Patch "Graphics/SR/%04d.png", 0, 0 }\n' % (i + 3, w, h, i + 3))
+        for side, png in enumerate(afterlife_posters(staged)):
+            z.writestr("Graphics/SR/AFTPOST%d.png" % side, png)
+            tex.append('WallTexture SRAFTPS%d, 64, 64 { Patch "Graphics/SR/AFTPOST%d.png", 0, 0 }\n' % (side, side))
         z.writestr("TEXTURES.SR", "".join(tex))
 
         # Read This! (SR keeps it in HELPART, outside VGAGRAPH): story, manual, credits

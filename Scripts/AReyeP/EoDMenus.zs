@@ -178,3 +178,15 @@ class EoDTextLog : StaticEventHandler
 		if (e.Name == "eodtextread") { pending = 0; }
 	}
 }
+
+// Options only End of Destiny has, shown only while it's the game (or the one
+// picked, before a game starts)
+class OptionMenuItemEoDOption : OptionMenuItemOption
+{
+	override bool Visible() { return AReyePGame.MenuIsEoD(); }
+}
+
+class OptionMenuItemEoDStaticText : OptionMenuItemStaticText
+{
+	override bool Visible() { return AReyePGame.MenuIsEoD(); }
+}

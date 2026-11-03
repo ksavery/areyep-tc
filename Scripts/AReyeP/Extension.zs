@@ -63,6 +63,8 @@ class AReyePExtension : GameExtension
 		{
 			int ceiling, floor;
 			[ceiling, floor] = AReyePGame.Flats(game, Slot(map), warped);
+			// The TC paints its own style from these; with textured floors (2) or both
+			// (3), SRRules.TextureSR then gives each room and the outside its own
 			return ceiling, floor, "", "", false;
 		}
 
@@ -83,16 +85,19 @@ class AReyePExtension : GameExtension
 
 		// Sky levels: MCS's stars in place of the ceiling, under eod4sdl's clouds
 		bool sky = AReyePGame.EoDSky(map, warped);
-		if (sky)
-		{
-			TextureID stars = TexMan.CheckForTexture("EODSKY", TexMan.Type_Any);
-			TextureID clouds = TexMan.CheckForTexture("EODCLOUD", TexMan.Type_Any);
-			if (stars.IsValid()) { level.ChangeSky(clouds.IsValid() ? clouds : stars, stars); }
-			level.skyspeed1 = 0.002;
-			level.skyspeed2 = 0;
-		}
+		if (sky) { StarSky(); }
 
 		return -1, -1, ceilingtex, floortex, sky;
+	}
+
+	// MCS's stars, under eod4sdl's drifting clouds when that option is on
+	static void StarSky()
+	{
+		TextureID stars = TexMan.CheckForTexture("EODSKY", TexMan.Type_Any);
+		TextureID clouds = AReyePGame.EoDClouds() ? TexMan.CheckForTexture("EODCLOUD", TexMan.Type_Any) : stars;
+		if (stars.IsValid()) { level.ChangeSky(clouds.IsValid() ? clouds : stars, stars); }
+		level.skyspeed1 = clouds != stars ? 0.002 : 0; // The clouds drift; the stars stay put
+		level.skyspeed2 = 0;
 	}
 
 	// A dev "+areyep_startmap GAMEMAPS.SR1:Black_Forest" starts on that map;
@@ -352,6 +357,7 @@ class AReyePExtension : GameExtension
 		{
 			// knife pistol MG Mk3 Mk4 rifle launcher Spear (eod4sdl KNIFEPIC + weapon)
 			static const Class<Weapon> weapons[] = { "WolfKnife", "WolfPistol", "WolfMachineGun", "SRMk3", "SRMk4", "EoDRifle", "WolfRocketLauncher", "EoDSpear" };
+			if (w is "EoDMedkit") { sb.DrawImage("EODMEDKT", (264, 176), StatusBarCore.DI_SCREEN_CENTER_BOTTOM | StatusBarCore.DI_ITEM_LEFT_TOP); }
 			for (int n = weapons.Size() - 1; w && n >= 0; n--)
 			{
 				if (!(w is weapons[n])) { continue; }
