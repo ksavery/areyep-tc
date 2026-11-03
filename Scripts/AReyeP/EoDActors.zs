@@ -145,7 +145,6 @@ class EoDSpear : ClassicWeapon
 	Default
 	{
 		Tag "Spear of Destiny";
-		AttackSound "dk/attack";
 		Weapon.SelectionOrder 0;
 		Weapon.SlotNumber 7;
 		Weapon.AmmoUse 0;
@@ -169,7 +168,7 @@ class EoDSpear : ClassicWeapon
 			Loop;
 		Fire:
 			D092 B 3;
-			D092 C 3 Bright A_FireProjectile("EoDSpearProjectile");
+			D092 C 3 Bright A_FireProjectile("EoDSpearProjectile", 0, 1, 0, -8);
 			D092 D 3;
 			D092 E 3;
 			D092 A 35;
@@ -185,7 +184,8 @@ class EoDSpearProjectile : WolfProjectile
 		Damage 100;
 		DamageFunction (100);
 		DamageType "Spear";
-		SeeSound "dk/attack";
+		SeeSound "eod/sound78"; // KNIGHTMISSILESND
+		DeathSound "eod/sound1"; // MISSILEHITSND
 		RenderStyle "Normal";
 		+BRIGHT
 	}
@@ -198,6 +198,16 @@ class EoDSpearProjectile : WolfProjectile
 		Death:
 			D106 EFG 4 Bright; // SPR_SPEARPROJ_EXP1-3
 			Stop;
+	}
+
+	// Its art sits mid-way up a sprite drawn from its feet, so to fly at eye level, as
+	// everything does in a flat Wolf3D world, it has to travel just above the floor
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+
+		SetZ(floorz + 5);
+		vel.z = 0;
 	}
 }
 
@@ -460,13 +470,25 @@ class EoDTeleportArtefact2 : EoDTeleportArtefact
 	}
 }
 
+// Hell on Earth's way out of the first room: MCS warps it to the west destination
 class EoDInvisibleTeleport : SRTeleportArtefact
 {
+	Default
+	{
+		SRTeleportArtefact.Channel 2;
+	}
+
 	States
 	{
 		Spawn:
 			TNT1 A -1;
 			Stop;
+	}
+
+	override void Trigger(Actor mo)
+	{
+		mo.A_StartSound("eod/swish", CHAN_VOICE);
+		Super.Trigger(mo);
 	}
 }
 

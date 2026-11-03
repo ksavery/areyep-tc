@@ -23,3 +23,33 @@ user noarchive string areyep_playmusic = ""; // dev: play this song four seconds
 user noarchive int areyep_hurt = 0; // dev: two seconds in, deal this much damage to each watched actor
 user noarchive int areyep_exit = 0; // dev: 1/2 = take the normal/secret exit shortly after each level loads
 server noarchive int areyep_wdepisode = 1; // Wolfendoom episode (1-6) picked in WDEpisodeMenu; New Game starts its first floor
+
+// Separate high score boards for each game; blank entries use the TC defaults.
+user string areyep_highscore_sr1_1 = "";
+user string areyep_highscore_sr1_2 = "";
+user string areyep_highscore_sr1_3 = "";
+user string areyep_highscore_sr1_4 = "";
+user string areyep_highscore_sr1_5 = "";
+user string areyep_highscore_sr1_6 = "";
+user string areyep_highscore_sr1_7 = "";
+user string areyep_highscore_sr2_1 = "";
+user string areyep_highscore_sr2_2 = "";
+user string areyep_highscore_sr2_3 = "";
+user string areyep_highscore_sr2_4 = "";
+user string areyep_highscore_sr2_5 = "";
+user string areyep_highscore_sr2_6 = "";
+user string areyep_highscore_sr2_7 = "";
+user string areyep_highscore_eod_1 = "";
+user string areyep_highscore_eod_2 = "";
+user string areyep_highscore_eod_3 = "";
+user string areyep_highscore_eod_4 = "";
+user string areyep_highscore_eod_5 = "";
+user string areyep_highscore_eod_6 = "";
+user string areyep_highscore_eod_7 = "";
+user string areyep_highscore_wfd_1 = "";
+user string areyep_highscore_wfd_2 = "";
+user string areyep_highscore_wfd_3 = "";
+user string areyep_highscore_wfd_4 = "";
+user string areyep_highscore_wfd_5 = "";
+user string areyep_highscore_wfd_6 = "";
+user string areyep_highscore_wfd_7 = "";

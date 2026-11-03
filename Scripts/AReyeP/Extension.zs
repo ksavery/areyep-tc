@@ -29,6 +29,7 @@ class AReyePExtension : GameExtension
 
 	override String DataSet(String ext) { return AReyePGame.Family(ext); }
 	override String Title(String ext) { return AReyePGame.Title(ext); }
+	override String HighScorePrefix(String game) { return AReyePGame.IsGame(game) ? "areyep_highscore_" .. game.MakeLower() .. "_" : ""; }
 	override String ShortTitle(String title)
 	{
 		static const String exts[] = { "SR1", "SR2", "EOD", "WFD" };

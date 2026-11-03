@@ -103,6 +103,7 @@ class EoDFinale : OldHelpMenu
 		sr = AReyePGame.CurrentFamily() == "SR";
 		graphicprefix = sr ? "SRV" : "EODV";
 		ParseFile(sr ? "Data/SR/End.txt" : "Data/EoD/End.txt");
+		LifeHandler.FinishGame();
 	}
 
 	override void Drawer()
@@ -131,7 +132,11 @@ class EoDFinale : OldHelpMenu
 			return false;
 		}
 
-		if ((mkey == MKEY_Enter || mkey == MKEY_Right) && mScreen >= pages.Size() - 1) { mkey = MKEY_Back; }
+		if (mkey == MKEY_Back || ((mkey == MKEY_Enter || mkey == MKEY_Right) && mScreen >= pages.Size() - 1))
+		{
+			Menu.SetMenu("HighScores", -1);
+			return true;
+		}
 		return Super.MenuEvent(mkey, fromcontroller);
 	}
 }
