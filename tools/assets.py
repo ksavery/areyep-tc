@@ -75,6 +75,7 @@ SR_MENU = {
     "MENUBLUE": 3, "M_SCNTRL": 4, "M_SCUSTO": 9, "M_SOPTIONS": 15, "M_SMENU": 16,
     "M_SKILL": 20, **{"SSKILL%d" % n: 20 + n for n in range(1, 5)}, "M_SLOADG": 27, "M_SSAVEG": 28,
     "M_SSELC0": 7, "M_SSELC1": 8,  # option markers, grey where Spear's are blue
+    "SSCORES": 29, "SODICON": 30,
 }
 
 EOD_MENU_MOVED = {"M_SSELC0": 5, "M_SSELC1": 6}

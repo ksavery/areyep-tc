@@ -681,8 +681,27 @@ class SRSuicideClone : Dog
 	}
 }
 
-// Wolf3D-style ghosts (invulnerable, chase, hurt on contact) in SR art
-class SRGrimReaper : PacManGhost
+// Wolf3D-style ghosts (invulnerable, chase, hurt on contact) in SR art. The last
+// level's leave their pedestals; everything else solid still stops them
+class SRGhost : PacManGhost
+{
+	// Saves from before ClassicBase kept its sprite through a load have them blank
+	override void Tick()
+	{
+		if (!sprite && health > 0) { sprite = SpawnState.sprite; }
+
+		Super.Tick();
+	}
+
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if (other is "SRBossPedestal") { return false; }
+
+		return Super.CanCollideWith(other, passive);
+	}
+}
+
+class SRGrimReaper : SRGhost
 {
 	Default
 	{
@@ -747,15 +766,15 @@ class SRYellowGhost : PacManGhost
 
 // Afterlife ghosts of the dead bosses: Hans, Gretel, Schabbs, Fettgesicht,
 // Wilhelm, Trans (from their art; the pedestals come in the same order)
-class SRBossGhost1 : PacManGhost { States { Spawn: SRG1 A 0; Goto Super::Spawn; } }
-class SRBossGhost2 : PacManGhost { States { Spawn: SRG2 A 0; Goto Super::Spawn; } }
-class SRBossGhost3 : PacManGhost { States { Spawn: SRG3 A 0; Goto Super::Spawn; } }
-class SRBossGhost4 : PacManGhost { States { Spawn: SRG4 A 0; Goto Super::Spawn; } }
-class SRBossGhost5 : PacManGhost { States { Spawn: SRG5 A 0; Goto Super::Spawn; } }
-class SRBossGhost6 : PacManGhost { States { Spawn: SRG6 A 0; Goto Super::Spawn; } }
+class SRBossGhost1 : SRGhost { States { Spawn: SRG1 A 0; Goto Super::Spawn; } }
+class SRBossGhost2 : SRGhost { States { Spawn: SRG2 A 0; Goto Super::Spawn; } }
+class SRBossGhost3 : SRGhost { States { Spawn: SRG3 A 0; Goto Super::Spawn; } }
+class SRBossGhost4 : SRGhost { States { Spawn: SRG4 A 0; Goto Super::Spawn; } }
+class SRBossGhost5 : SRGhost { States { Spawn: SRG5 A 0; Goto Super::Spawn; } }
+class SRBossGhost6 : SRGhost { States { Spawn: SRG6 A 0; Goto Super::Spawn; } }
 
 // Angel ghost (red demon, three frames)
-class SRAngelGhost : PacManGhost
+class SRAngelGhost : SRGhost
 {
 	Default
 	{
@@ -902,9 +921,10 @@ class SRPinkSkull : SRDecoration { States { Spawn: SRSK B -1; Stop; } }
 class SRBoxesOnFloor : SRDecoration { States { Spawn: SRBX A -1; Stop; } }
 class SRBlackPuddle : SRDecoration { States { Spawn: SRPU A -1; Stop; } }
 
+class SRBossPedestal : SRSolidDecoration {}
 class SRStoneColumn : SRSolidDecoration { States { Spawn: SRSC A -1; Stop; } }
 class SRChoppingTable : SRSolidDecoration { States { Spawn: SRBT A -1; Stop; } }
-class SRHitlerPedestal : SRSolidDecoration { States { Spawn: SRHS A -1; Stop; } }
+class SRHitlerPedestal : SRBossPedestal { States { Spawn: SRHS A -1; Stop; } }
 class SRPlainPedestal : SRSolidDecoration { States { Spawn: SRPD A -1; Stop; } }
 class SRPedestalPot : SRSolidDecoration { States { Spawn: SRPD B -1; Stop; } }
 class SRDesk : SRSolidDecoration { States { Spawn: SRDK A -1; Stop; } }
@@ -915,18 +935,18 @@ class SRWellEmpty : SRSolidDecoration { States { Spawn: SRWL B -1; Stop; } }
 class SRRustyDrum : SRSolidDecoration { States { Spawn: SRRD A -1; Stop; } }
 
 // Boss pedestals (Afterlife), full and empty
-class SRPedestalHans : SRSolidDecoration { States { Spawn: SRPB A -1; Stop; } }
-class SRPedestalGretel : SRSolidDecoration { States { Spawn: SRPB B -1; Stop; } }
-class SRPedestalSchabbs : SRSolidDecoration { States { Spawn: SRPB C -1; Stop; } }
-class SRPedestalFatface : SRSolidDecoration { States { Spawn: SRPB D -1; Stop; } }
-class SRPedestalWilhelm : SRSolidDecoration { States { Spawn: SRPB E -1; Stop; } }
-class SRPedestalTrans : SRSolidDecoration { States { Spawn: SRPB F -1; Stop; } }
-class SREmptyPedestalHans : SRSolidDecoration { States { Spawn: SRPE A -1; Stop; } }
-class SREmptyPedestalGretel : SRSolidDecoration { States { Spawn: SRPE B -1; Stop; } }
-class SREmptyPedestalSchabbs : SRSolidDecoration { States { Spawn: SRPE C -1; Stop; } }
-class SREmptyPedestalFatface : SRSolidDecoration { States { Spawn: SRPE D -1; Stop; } }
-class SREmptyPedestalWilhelm : SRSolidDecoration { States { Spawn: SRPE E -1; Stop; } }
-class SREmptyPedestalTrans : SRSolidDecoration { States { Spawn: SRPE F -1; Stop; } }
+class SRPedestalHans : SRBossPedestal { States { Spawn: SRPB A -1; Stop; } }
+class SRPedestalGretel : SRBossPedestal { States { Spawn: SRPB B -1; Stop; } }
+class SRPedestalSchabbs : SRBossPedestal { States { Spawn: SRPB C -1; Stop; } }
+class SRPedestalFatface : SRBossPedestal { States { Spawn: SRPB D -1; Stop; } }
+class SRPedestalWilhelm : SRBossPedestal { States { Spawn: SRPB E -1; Stop; } }
+class SRPedestalTrans : SRBossPedestal { States { Spawn: SRPB F -1; Stop; } }
+class SREmptyPedestalHans : SRBossPedestal { States { Spawn: SRPE A -1; Stop; } }
+class SREmptyPedestalGretel : SRBossPedestal { States { Spawn: SRPE B -1; Stop; } }
+class SREmptyPedestalSchabbs : SRBossPedestal { States { Spawn: SRPE C -1; Stop; } }
+class SREmptyPedestalFatface : SRBossPedestal { States { Spawn: SRPE D -1; Stop; } }
+class SREmptyPedestalWilhelm : SRBossPedestal { States { Spawn: SRPE E -1; Stop; } }
+class SREmptyPedestalTrans : SRBossPedestal { States { Spawn: SRPE F -1; Stop; } }
 
 // Game-wide SR rules that live on the player rather than on map things, and
 // MCS's hard-coded per-level effects (PlayLoop, image 0xda60 onwards)
@@ -1032,16 +1052,23 @@ class SRRules : StaticEventHandler
 		}
 
 		if (level.maptime == 1) { StartLevel(); }
+		else if (slot < 0) { FindSlot(); } // A loaded save is past that
 		ZoneFlats();
 		if (slot == 0) { Storm(); }
 		else if (slot == 20 || slot == 21 || slot == 22) { Ambience(); }
 	}
 
-	void StartLevel()
+	void FindSlot()
 	{
 		ParsedMap map = MapHandler.Get() ? MapHandler.Get().curmap : null;
 		bool sr = map && AReyePGame.Family(map.extension) == "SR";
 		slot = sr ? map.mapnum - AReyePGame.MapBase(map.extension) - 1 : -1;
+	}
+
+	void StartLevel()
+	{
+		FindSlot();
+		bool sr = slot >= 0;
 		MarkBronzeDoors();
 
 		// INTRART1-5: level 13's capture, and each boss's level
