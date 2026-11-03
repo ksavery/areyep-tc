@@ -4,3 +4,6 @@
 # Scripts keep the line endings their shells need, on any checkout
 *.sh text eol=lf
 *.bat text eol=crlf
+
+# The release folder's readme, for Windows users
+release/*.txt text eol=crlf
