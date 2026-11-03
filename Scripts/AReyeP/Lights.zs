@@ -73,7 +73,9 @@ class AReyePLights : EventHandler
 
 		MapHandler handler = MapHandler.Get();
 		String dataset = handler && handler.curmap ? GameExtension.GetDataSet(handler.curmap.extension) : "";
-		if (dataset.length()) { GraphicsHandler.Activate(dataset); }
+		// (Activate would skip it: this game's art is already the one drawn)
+		GraphicsHandler graphics = GraphicsHandler.Get();
+		if (dataset.length() && graphics) { graphics.ParseGraphics(dataset); }
 	}
 
 	static bool IsLamp(Actor mo)
