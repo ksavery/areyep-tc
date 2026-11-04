@@ -24,7 +24,7 @@ class AReyePBlockMarker : MapMarker
 		{
 			sprite = master.sprite;
 			frame = master.frame;
-			Scale = master.Scale * 0.625;
+			Scale = master.Scale * 0.4;
 		}
 		else
 		{
