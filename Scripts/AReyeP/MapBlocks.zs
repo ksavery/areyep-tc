@@ -19,6 +19,20 @@ class AReyePBlockMarker : MapMarker
 	{
 		if (!master || !master.bSolid) { Destroy(); return; }
 
+		CVar textured = CVar.FindCVar("am_textured");
+		if (textured && textured.GetBool() && !master.bInvisible && master.sprite > 0)
+		{
+			sprite = master.sprite;
+			frame = master.frame;
+			Scale = master.Scale * 0.625;
+		}
+		else
+		{
+			sprite = GetSpriteIndex("AMBK");
+			frame = 0;
+			Scale = (0.45, 0.45);
+		}
+
 		Super.Tick();
 	}
 }
