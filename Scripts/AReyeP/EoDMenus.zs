@@ -190,3 +190,111 @@ class OptionMenuItemEoDStaticText : OptionMenuItemStaticText
 {
 	override bool Visible() { return AReyePGame.MenuIsEoD(); }
 }
+
+// Wolfendoom's, likewise
+class OptionMenuItemWDOption : OptionMenuItemOption
+{
+	override bool Visible() { return AReyePGame.MenuFamilyIs("WFD"); }
+}
+
+class OptionMenuItemWDStaticText : OptionMenuItemStaticText
+{
+	override bool Visible() { return AReyePGame.MenuFamilyIs("WFD"); }
+}
+
+// areyep_wdflats repaints the level as the TC's own g_useflats does
+class WDFlatsChange : CustomIntCVar
+{
+	override int ModifyValue(Name CVarName, int val)
+	{
+		EventHandler.SendNetworkEvent("updateflatstyle", -1);
+		return val;
+	}
+}
+
+// The TC's save menu, counting Tournament! saves (EoDTournament): with none
+// left it says so over the save screen and goes, as MCS's CP_SaveGame, and
+// each save made spends one
+class AReyePSaveMenu : ExtendedSaveMenu
+{
+	int refusal; // 1: to say so, 2: said, close when back
+
+	override void Init(Menu parent, ListMenuDescriptor desc)
+	{
+		Super.Init(parent, desc);
+		if (!EoDTournament.CanSave()) { refusal = 1; }
+	}
+
+	override void Ticker()
+	{
+		if (refusal == 1)
+		{
+			refusal = 2;
+			EoDTournament.NoSaves();
+			return;
+		}
+		if (refusal == 2)
+		{
+			Close();
+			return;
+		}
+
+		Super.Ticker();
+	}
+
+	override bool MenuEvent(int mkey, bool fromcontroller)
+	{
+		bool used = Super.MenuEvent(mkey, fromcontroller);
+		if (mkey == MKEY_Input && Selected >= 0 && AReyePGame.Tournament()) { EventHandler.SendNetworkEvent("eodspendsave"); } // the name's in: it saves next tic
+		return used;
+	}
+}
+
+// The TC's skill menu, with Tournament! (MAPINFO's fifth skill) for End of
+// Destiny alone. The engine builds the skill list once and shares it, so the
+// entry is set aside while another game's menu is open
+class AReyePSkillMenu : SkillMenu
+{
+	ListMenuItem aside;
+	int asideat;
+
+	override void Init(Menu parent, ListMenuDescriptor desc)
+	{
+		if (AReyePGame.Family(g_modgame) != "EOD")
+		{
+			for (int i = 0; i < desc.mItems.Size(); i++)
+			{
+				let item = ListMenuItemSelectable(desc.mItems[i]);
+				if (!item || item.mParam != AReyePGame.TOURNAMENTSKILL) { continue; }
+
+				aside = item;
+				asideat = i;
+				desc.mItems.Delete(i);
+				if (desc.mSelectedItem >= i) { desc.mSelectedItem = max(desc.mSelectedItem - 1, 0); }
+				break;
+			}
+		}
+
+		Super.Init(parent, desc);
+
+		// The TC places the face by the middle names; with a fifth skill it sits
+		// level with "I am Death incarnate!", so clear the widest of them all
+		double widest;
+		for (int i = 0; i < mDesc.mItems.Size(); i++)
+		{
+			if (mDesc.mItems[i].Selectable()) { widest = max(widest, mDesc.mItems[i].GetWidth()); }
+		}
+		iconOffset = max(iconOffset, mDesc.mXpos + widest);
+	}
+
+	override void OnDestroy()
+	{
+		if (aside)
+		{
+			mDesc.mItems.Insert(asideat, aside);
+			aside = null;
+		}
+
+		Super.OnDestroy();
+	}
+}

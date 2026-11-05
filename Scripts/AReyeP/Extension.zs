@@ -76,7 +76,11 @@ class AReyePExtension : GameExtension
 				0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0xBF, 0x4E, 0x4E, 0x4E, 0x1D, 0x8D, 0x4E, 0x1D, 0x2D, 0x1D, 0x8D,
 				0x1D, 0x1D, 0x1D, 0x1D, 0x1D, 0x2D, 0xDD, 0x1D, 0x1D, 0x98, 0x1D, 0x9D, 0x2D, 0xDD, 0xDD, 0x9D, 0x2D, 0x4D, 0x1D, 0xDD,
 				0x7D, 0x1D, 0x2D, 0x2D, 0xDD, 0xD7, 0x1D, 0x1D, 0x1D, 0x2D, 0x1D, 0x1D, 0x1D, 0x1D, 0xDD, 0xDD, 0x7D, 0xDD, 0xDD, 0xDD };
-			return wdceilings[clamp(Slot(map), 0, 59)], -1, "", "", false;
+			int ceiling = wdceilings[clamp(Slot(map), 0, 59)];
+
+			// Plain colours unless asked for (areyep_wdflats): its walls are drawn to meet them
+			if (!AReyePGame.WDFlats()) { return ceiling, -1, String.Format("%02x", ceiling), "FLOOR", false; }
+			return ceiling, -1, "", "", false;
 		}
 
 		// End of Destiny textures its floors and ceilings from the map's row 0
@@ -170,6 +174,7 @@ class AReyePExtension : GameExtension
 		bool found;
 		[h0, h1, h2, h3, found] = AReyePGame.SkillHealth(mo, family);
 		if (found) { mo.skillhealth0 = h0; mo.skillhealth1 = h1; mo.skillhealth2 = h2; mo.skillhealth3 = h3; }
+		if (skill > 3) { mo.skillhealth0 = mo.skillhealth3; } // Tournament: the TC takes skills past its four as the first; EoD's table repeats the hardest's
 
 		int score = AReyePGame.KillScore(mo, family);
 		if (score) { mo.scoreamt = max(score, 0); }
@@ -456,4 +461,8 @@ class AReyePExtension : GameExtension
 	}
 
 	override bool StockCheats(String game) { return !MCSLook(game); }
+
+	// Wolfendoom's art in the TC's lamp slots isn't all lamps (its bushes lit up),
+	// and the original had no lights: g_dynamiclights stays off there
+	override bool DynamicLights(String game) { return AReyePGame.Family(game) != "WFD"; }
 }

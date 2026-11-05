@@ -202,7 +202,7 @@ class EoDLevelRules : EventHandler
 		bool eod = AReyePGame.CurrentFamily() == "EOD";
 		int base = eod && slot >= 0 && slot < shadestrength.Size() && shadestrength[slot] == 2 ? 255 - SHADELIGHT2 : 255 - SHADELIGHT1;
 		int amount = int(base * min(strength, 1.0) + max(strength - 1.0, 0.0) * DARKER);
-		return amount + (AReyePGame.EoDOption('g_dynamiclights') ? DIMFORLAMPS : 0);
+		return amount + (GameExtension.LightsOn() ? DIMFORLAMPS : 0);
 	}
 
 	void Unshade()
@@ -398,5 +398,81 @@ class EoDLastStand : Inventory
 
 		EoDLevelRules rules = EoDLevelRules(EventHandler.Find("EoDLevelRules"));
 		if (rules && !rules.exittime) { rules.exittime = level.maptime + 35; }
+	}
+}
+
+// End of Destiny's Tournament! skill (eod4sdl gd_extreme): the lives counter
+// holds saves. Three to start, one more for each level finished (the
+// ex_completed step's lives++) and each save artefact, up to nine; a save spends
+// one, and none can be made without (CP_SaveGame). Dying costs nothing: the
+// level starts over. The level-start autosaves the TC restarts from are free.
+class EoDTournament : StaticEventHandler
+{
+	bool starting; // a new game's first level is next
+
+	const NOSAVESLEFT = "You have no more saves\nleft for the current\ntournament game."; // MCS's message
+
+	override void NewGame()
+	{
+		starting = true;
+	}
+
+	override void WorldLoaded(WorldEvent e)
+	{
+		if (e.IsSaveGame || AReyePGame.CurrentFamily() == "") { return; }
+
+		bool first = starting;
+		starting = false;
+		if (first || !AReyePGame.Tournament()) { return; }
+
+		for (int p = 0; p < MAXPLAYERS; p++)
+		{
+			if (playeringame[p] && players[p].mo) { LifeHandler.GiveLife(players[p].mo); }
+		}
+	}
+
+	// The TC has just taken a life
+	override void PlayerDied(PlayerEvent e)
+	{
+		if (AReyePGame.Tournament() && players[e.PlayerNumber].mo) { LifeHandler.GiveLife(players[e.PlayerNumber].mo); }
+	}
+
+	override void NetworkProcess(ConsoleEvent e)
+	{
+		if (e.Name != "eodspendsave" || !AReyePGame.Tournament()) { return; }
+
+		Actor mo = players[e.Player].mo;
+		if (mo) { LifeHandler.SetLives(mo, LifeHandler.CheckLives(mo) - 1); }
+	}
+
+	static ui bool CanSave()
+	{
+		return !AReyePGame.Tournament() || LifeHandler.GetLives(players[consoleplayer].mo) > 0;
+	}
+
+	static ui void NoSaves()
+	{
+		Menu.MenuSound("menu/invalid");
+		Menu.StartMessage(NOSAVESLEFT, 1);
+	}
+
+	// The quicksave key: the TC's SaveInfo writes the save, after this has its turn
+	override bool InputProcess(InputEvent e)
+	{
+		if (e.Type != InputEvent.Type_KeyDown || gamestate != GS_LEVEL || multiplayer || !AReyePGame.Tournament()) { return false; }
+
+		int key1, key2;
+		[key1, key2] = Bindings.GetKeysForCommand("quicksave");
+		if (e.KeyScan != key1 && e.KeyScan != key2) { return false; }
+		if (players[consoleplayer].health <= 0) { return false; }
+
+		if (!CanSave())
+		{
+			NoSaves();
+			return true;
+		}
+
+		EventHandler.SendNetworkEvent("eodspendsave");
+		return false;
 	}
 }

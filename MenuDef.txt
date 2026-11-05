@@ -92,6 +92,9 @@ OptionMenu "TCOptions"
 	EoDOption "Snow",						"areyep_eodsnow", "YesNo"
 	EoDOption "Snow Falls",					"areyep_eodsnowarea", "EoDSnowArea"
 	EoDStaticText ""
+	WDStaticText "Wolfendoom", 1
+	WDOption "Textured Floors & Ceilings",	"areyep_wdflats", "YesNo"
+	WDStaticText ""
 	StaticText "$M_HUDOPTIONS", 1
 	Option "$M_OPTIONSHUDSTYLE",			"hud_althud", "YesNo"
 	Option "$M_OPTIONSFADESTYLE",			"g_fadestyle", "YesNo"
@@ -175,4 +178,29 @@ OptionValue "EoDSnowArea"
 {
 	0, "Outdoors"
 	1, "Whole Level"
+}
+
+// The TC's, with Tournament! for End of Destiny alone (AReyePSkillMenu)
+ListMenu "SkillMenu"
+{
+	Font "BigFont", "WolfMenuYellowBright"
+	Title 160, 78, "$M_SKILL"
+
+	Position 75, 102
+
+	Box 260, 58, 0
+
+	Font "BigFont", "WolfMenuGray", "WolfMenuLightGray"
+
+	Class "AReyePSkillMenu"
+}
+
+// The TC's, counting Tournament! saves (AReyePSaveMenu)
+ListMenu "SaveGameMenu"
+{
+	TopStrip 10
+	StripTitle 0, 0, "M_SaveGm"
+	Position 80, 65
+
+	Class "AReyePSaveMenu"
 }

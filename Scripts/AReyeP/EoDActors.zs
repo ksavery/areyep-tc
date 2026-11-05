@@ -45,6 +45,12 @@ class EoDRifle : WolfPistol
 		Inventory.PickupMessage "You picked up a stealth rifle"; // MCS's message (EoD shows it, SR prints none)
 	}
 
+	// End of Destiny's alone: a cheat in another game doesn't hand it out
+	override bool TryPickup(in out Actor toucher)
+	{
+		return AReyePGame.CurrentFamily() == "EOD" && Super.TryPickup(toucher);
+	}
+
 	States
 	{
 		Spawn:
@@ -107,10 +113,17 @@ class EoDRocketLauncher : WolfRocketLauncher
 {
 	Default
 	{
-		Weapon.WeaponScaleX 1.0;
-		Weapon.WeaponScaleY 1.0;
-		Weapon.YAdjust 0;
+		Weapon.WeaponScaleX 1.0; // placed like the other weapons (not the TC launcher's larger art)
+		Weapon.WeaponScaleY 1.2;
+		Weapon.YAdjust -9.0;
+		-Weapon.CHEATNOTWEAPON // the TC's launcher is left out of the give-all cheats; EoD's is a game weapon
 		Inventory.PickupMessage "You picked up a rocket launcher"; // MCS's message (EoD shows it, SR prints none)
+	}
+
+	// End of Destiny's alone: a cheat in another game doesn't hand it out
+	override bool TryPickup(in out Actor toucher)
+	{
+		return AReyePGame.CurrentFamily() == "EOD" && Super.TryPickup(toucher);
 	}
 
 	States
@@ -231,9 +244,16 @@ class EoDBackpack : WolfBackpack
 	}
 }
 
-// Save artefact: an extra life, up to nine
+// Save artefact: a Tournament! save, up to nine. Only Tournament! has them
+// (eod4sdl ScanInfoPlane spawns code 314 for gd_extreme alone)
 class EoDSaveArtefact : CustomInventory
 {
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		if (!bDropped && !AReyePGame.Tournament()) { Destroy(); }
+	}
+
 	Default
 	{
 		//$Category End of Destiny/Artefacts
@@ -259,11 +279,38 @@ class EoDSaveArtefact : CustomInventory
 	}
 }
 
-// Fury artefact: berserk knife for a while (the TC's berserk)
-class EoDFury : WolfBerserk
+// 1-up (eod4sdl bo_fullheal): health up to the next of 125, 150, 175 and 200,
+// and an extra life, except in Tournament! where lives are saves
+class EoDFullHeal : SRArtefactLife
+{
+	States
+	{
+		Pickup:
+			TNT1 A 0 {
+				A_SetHealth(health < 125 ? 125 : health < 150 ? 150 : health < 175 ? 175 : 200);
+				if (!AReyePGame.Tournament()) { LifeHandler.GiveLife(self); }
+				return true;
+			}
+			Stop;
+	}
+}
+
+// Fury artefact (eod4sdl bo_fury): thirty seconds, more with each one, of a
+// knife that kills whatever it stabs. The knife comes out on pickup and goes
+// back to the weapon before when the fury ends
+class EoDFury : PowerupGiver
 {
 	Default
 	{
+		//$Category End of Destiny/Artefacts
+		//$Title Artefact of Fury
+		+COUNTITEM
+		+Inventory.AUTOACTIVATE
+		+Inventory.ADDITIVETIME
+		Inventory.MaxAmount 0;
+		Powerup.Type "EoDPowerFury";
+		Powerup.Duration -30;
+		Inventory.PickupSound "pickups/life"; // BONUS1UPSND
 		Inventory.PickupMessage "Knife Fury!"; // MCS's message
 	}
 
@@ -273,6 +320,43 @@ class EoDFury : WolfBerserk
 			D080 ABCD 8 Bright; // SPR_STAT_FURY1-4
 			Loop;
 	}
+}
+
+class EoDPowerFury : Powerup
+{
+	Class<Weapon> before;
+
+	override void InitEffect()
+	{
+		Super.InitEffect();
+		if (!owner || !owner.player) { return; }
+
+		Weapon held = owner.player.PendingWeapon != WP_NOCHANGE ? owner.player.PendingWeapon : owner.player.ReadyWeapon; // a gun just picked up counts
+		if (held) { before = held.GetClass(); }
+		owner.GiveInventory("EoDFuryStrength", 1); // the TC knife's quick stabs, which also never roll a zero
+		owner.A_SelectWeapon("WolfKnife");
+	}
+
+	override void EndEffect()
+	{
+		Super.EndEffect();
+		if (!owner || !owner.player) { return; }
+
+		owner.TakeInventory("EoDFuryStrength", 1);
+		if (owner.player.ReadyWeapon is "WolfKnife" && before && !(before is "WolfKnife")) { owner.A_SelectWeapon(before); }
+	}
+
+	// eod4sdl KillActor: a stab kills outright
+	override void ModifyDamage(int damage, Name damageType, out int newdamage, bool passive, Actor inflictor, Actor source, int flags, double angle)
+	{
+		if (!passive && damage > 0 && damageType == 'Melee') { newdamage = 100000; }
+	}
+}
+
+// The TC's berserk for the knife, without its red flash
+class EoDFuryStrength : PowerStrength
+{
+	override color GetBlend() { return 0; }
 }
 
 // Portable medkits (eod4sdl wp_medkit): carried like ammo, two at a time or four

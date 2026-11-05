@@ -63,6 +63,11 @@ user bool areyep_eodclouds = false;
 user bool areyep_eodsnow = true;
 user int areyep_eodsnowarea = 0;
 
+// Wolfendoom's floors and ceilings: off, its plain colours, as the original,
+// whose walls are drawn to meet them (low-looking office walls, the "portals");
+// on, the TC's g_useflats style
+user HandlerClass(WDFlatsChange) int areyep_wdflats = 0;
+
 // Distance shading in every AReyeP game: End of Destiny's (both originals have
 // it), and its lighter one for SR and Wolfendoom. 0 off, 1 the originals', 2 darkest
 user float areyep_shadestrength = 1.0;

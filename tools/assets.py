@@ -79,6 +79,7 @@ SR_MENU = {
 }
 
 EOD_MENU_MOVED = {"M_SSELC0": 5, "M_SSELC1": 6}
+EOD_TOURNAMENT_FACE = 25  # eod4sdl DrawNewGameDiff: C_BABYMODEPIC + 4
 
 SR_MUSIC_START = 243  # STARTMUSIC: chunk = songs[map] + 243 (MCS's StartMusic)
 
@@ -531,6 +532,8 @@ def build_eod(z, staged, pal):
         w, h = vg.picsizes[chunk - 3]
         offset = " Offset 92, 0" if name == "M_SKILL" else ""
         tex.append('Texture EOD_%s, %d, %d {%s Patch "Graphics/EOD/%04d.png", 0, 0 }\n' % (name, w, h, offset, chunk))
+    w, h = vg.picsizes[EOD_TOURNAMENT_FACE - 3]  # Tournament's face, after Spear's four
+    tex.append('Texture EOD_SSKILL5, %d, %d { Patch "Graphics/EOD/%04d.png", 0, 0 }\n' % (w, h, EOD_TOURNAMENT_FACE))
     for i in range(len(vg.picsizes)):  # every picture, for the articles' ^G
         w, h = vg.picsizes[i]
         tex.append('Graphic EODV%04d, %d, %d { Patch "Graphics/EOD/%04d.png", 0, 0 }\n' % (i + 3, w, h, i + 3))
@@ -683,9 +686,14 @@ def afterlife_posters(staged):
 
 def imf_lump(chunk):
     """An AUDIOT song (16-bit length, then IMF data) in the TC's wrapping: ZMusic's
-    "ADLIB" header, then a 32-bit length."""
+    "ADLIB" header, then a 32-bit length. The last event's delay goes: id's player
+    starts the song over as soon as it has played that event (SDL_IMFMusicPlayer),
+    where ZMusic waits it out, and some songs end on 0xFFFF, a minute and a half."""
     length = struct.unpack("<H", chunk[:2])[0]
-    return b"ADLIB\x01\x00\x00\x01" + struct.pack("<I", length) + chunk[2:]
+    data = bytearray(chunk[2:])
+    if length >= 4:
+        data[length - 2:length] = b"\x00\x00"
+    return b"ADLIB\x01\x00\x00\x01" + struct.pack("<I", length) + bytes(data)
 
 
 def main():

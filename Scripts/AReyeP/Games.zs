@@ -81,6 +81,13 @@ class AReyePGame
 		return pm ? Family(pm.extension) : "";
 	}
 
+	// End of Destiny's Tournament! skill (MAPINFO's fifth): saves are counted
+	const TOURNAMENTSKILL = 4;
+	static clearscope bool Tournament()
+	{
+		return skill == TOURNAMENTSKILL && CurrentFamily() == "EOD";
+	}
+
 	// 0-based map slot of the parsed map being played, -1 outside AReyeP games
 	static clearscope int CurrentSlot()
 	{
@@ -172,9 +179,15 @@ class AReyePGame
 	// End of Destiny's own options are shown for it alone
 	static ui bool MenuIsEoD()
 	{
+		return MenuFamilyIs("EOD");
+	}
+
+	// The game being played, else the one picked, is this family
+	static ui bool MenuFamilyIs(String which)
+	{
 		String family = CurrentFamily();
 		if (family == "") { family = Family(g_modgame); }
-		return family == "EOD";
+		return family == which;
 	}
 
 	// The menus look like the game being played, else the one picked
@@ -364,6 +377,7 @@ class AReyePGame
 	static clearscope bool EoDClouds() { return EoDOption('areyep_eodclouds'); }
 	// The TC's floor/ceiling setting: 0 none, 1 minimal, 2 textured floors, 3 both
 	static clearscope int SRFlatStyle() { return EoDOption('g_useflats'); }
+	static clearscope bool WDFlats() { return EoDOption('areyep_wdflats'); }
 
 	// EoD's row 0 cells 4, 5 (6, 7 after a teleport) hold the level's sky modes;
 	// any but 0 puts the star sky in place of the ceiling (DrawStarSky, image

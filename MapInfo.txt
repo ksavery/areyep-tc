@@ -1,9 +1,20 @@
 gameinfo
 {
-	AddEventHandlers = "AReyePDevProbe", "MCSRules", "SRRules", "EoDRules", "EoDLevelRules", "EoDTextLog", "EoDWeather", "WDLevelRules", "AReyePSaveState", "AReyePBlockMarkers", "AReyePLights", "AReyePDefaults"
+	AddEventHandlers = "AReyePDevProbe", "MCSRules", "SRRules", "EoDRules", "EoDLevelRules", "EoDTextLog", "EoDWeather", "WDLevelRules", "AReyePSaveState", "AReyePBlockMarkers", "AReyePLights", "AReyePDefaults", "EoDTournament"
 	StatScreen_Single = "AReyePStats"
 	StatScreen_Coop = "AReyePStats"
 	StatScreen_DM = "AReyePStats"
+}
+
+// End of Destiny's fifth skill (eod4sdl gd_extreme): the hardest skill's enemies,
+// and the lives counter holds saves instead (EoDTournament). Only End of
+// Destiny's skill menu offers it (AReyePSkillMenu)
+skill tournament
+{
+	SpawnFilter = "Hard"
+	Name = "Tournament!"
+	TextColor = "WolfMenuGrey"
+	Key = "T"
 }
 
 // The TC's defaults (MAPINFO's defaultmap only covers its own lump)

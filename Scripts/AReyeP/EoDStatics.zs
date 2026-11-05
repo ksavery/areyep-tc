@@ -531,7 +531,7 @@ class EoDObjSecondaryAmmoBox89 : SRAmmo2Crate // Secondary ammo box      89...
 	}
 }
 
-class EoDObj1UpAnimated70270 : SRArtefactLife // 1-up animated   70 (270)
+class EoDObj1UpAnimated70270 : EoDFullHeal // 1-up animated   70 (270)
 {
 	States
 	{

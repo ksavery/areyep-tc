@@ -29,7 +29,7 @@ PICKUPS = {
     "bo_diamond": "SRBlackDiamond", "bo_clip": "WolfClip", "bo_clip2": "WolfClip", "bo_25clip": "WolfClipBox",
     "bo_sclip": "SRAmmo2", "bo_s25clip": "SRAmmo2Crate", "bo_machinegun": "WolfMachineGun",
     "bo_mk3": "SRMk3", "bo_mk4": "SRMk4", "bo_spear": "SpearofDestiny", "bo_gibs": "BoneswithBlood",
-    "bo_fullheal": "SRArtefactLife", "bo_landmine": "SRLandmine", "bo_goodberry": "SRGoodBerryBush",
+    "bo_fullheal": "EoDFullHeal", "bo_landmine": "SRLandmine", "bo_goodberry": "SRGoodBerryBush",
     "bo_badberry": "SRBadBerryBush", "bo_poison": "SRToxicSlime", "bo_pistol": "SRPistolPickup",
     "bo_god": "SRGodModeArtefact", "bo_death": "SRDeathArtefact", "bo_backpack": "EoDBackpack",
     "bo_rifle": "EoDRifle", "bo_rifleclip": "EoDRifleAmmo", "bo_launcher": "EoDRocketLauncher",

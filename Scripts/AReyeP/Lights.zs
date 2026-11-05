@@ -54,8 +54,7 @@ class AReyePLights : EventHandler
 		String family = AReyePGame.CurrentFamily();
 		if (family != "SR" && family != "EOD") { return; }
 
-		CVar dynlights = CVar.GetCVar("g_dynamiclights", players[consoleplayer]);
-		bool want = dynlights && dynlights.GetInt();
+		bool want = GameExtension.LightsOn();
 		if (!want && !poolsgone) { return; }
 
 		// Cleared again each second while lights are on: the TC redraws the art
@@ -107,8 +106,7 @@ class AReyePLights : EventHandler
 
 	static void Boost(Actor mo, int radius, color clr, double z)
 	{
-		CVar dynlights = CVar.GetCVar("g_dynamiclights", players[consoleplayer]);
-		if (dynlights && dynlights.GetInt()) { mo.A_AttachLight("Boost", DynamicLight.PointLight, clr, radius, 0, 0, (0, 0, z)); }
+		if (GameExtension.LightsOn()) { mo.A_AttachLight("Boost", DynamicLight.PointLight, clr, radius, 0, 0, (0, 0, z)); }
 		else { mo.A_RemoveLight("Boost"); }
 	}
 
