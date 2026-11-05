@@ -9,4 +9,7 @@ areyep_args ""
 # Settings of their own: the TC IWAD's config section ("Wolf3D") would
 # otherwise be shared with the stock TC
 config=${XDG_CONFIG_HOME:-$HOME/.config}/uzdoom/areyep.ini
+# OpenAL Soft's own PipeWire backend can crash as UZDoom quits, before it has
+# saved its settings; its PulseAudio one (served by PipeWire too) doesn't
+export ALSOFT_DRIVERS=${ALSOFT_DRIVERS:-pulse}
 exec uzdoom "${args[@]}" -config "$config" +logfile play.log "$@"
