@@ -371,6 +371,16 @@ class EoDWallFireball : WolfProjectile
 			Stop;
 	}
 
+	// It flies on over what lies on the floor (bodies, treasure: the TC makes
+	// those solid with no height, for walking over). Windows and the other
+	// wall pieces stop it, as eod4sdl's blocking statics do
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if (other is "ClassicDecoration" && other.Height <= 0) { return false; }
+
+		return Super.CanCollideWith(other, passive);
+	}
+
 	override int SpecialMissileHit(Actor victim)
 	{
 		// Bodies don't block it: MCS clears a dead actor from the map (actorat), so only walls and solid objects stop a projectile
