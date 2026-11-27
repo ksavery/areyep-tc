@@ -9,6 +9,7 @@
 //                      3: by the normal exit four seconds in, through the intermission
 //                      4: as 1, but only from parsed maps (so a load from the title gets there)
 //   +areyep_goto "x,y,angle"  stand the player on that tile, facing that way
+//   +areyep_use TIC    press use on the wall the player faces at that level tic
 //   +areyep_push "x,y,ang"  push that pushwall (byte angle), report the distance
 //   +areyep_tile "x,y;x,y"  report those tiles' sector heights and codes
 //   +areyep_cheat N    apply MCSCheats cheat N two seconds in
@@ -209,6 +210,9 @@ class AReyePDevProbe : StaticEventHandler
 			}
 		}
 
+		CVar usecv = CVar.FindCVar("areyep_use");
+		if (usecv && usecv.GetInt() && leveltics == usecv.GetInt() && players[0].mo) { UseWall(players[0].mo); }
+
 		CVar exitcv = CVar.FindCVar("areyep_exit");
 		if (exitcv && exitcv.GetInt() == 3 && leveltics == 140) { level.ExitLevel(0, false); } // as the elevator does, intermission and all
 		else if (exitcv && (exitcv.GetInt() == 4 ? MapHandler.Get() && MapHandler.Get().curmap : exitcv.GetInt() && exitcv.GetInt() < 3) && leveltics == 20)
@@ -255,6 +259,16 @@ class AReyePDevProbe : StaticEventHandler
 		if (!test || !test.GetInt()) { return; }
 
 		if (leveltics == 35 || leveltics == 140) { SwitchTest(leveltics == 35); }
+	}
+
+	void UseWall(Actor mo)
+	{
+		FLineTraceData t;
+		mo.LineTrace(mo.angle, 64, 0, TRF_THRUACTORS, mo.player.viewheight, data: t);
+		if (!t.HitLine) { console.printf("USE nothing"); return; }
+
+		console.printf("USE line %i special=%i args=%i,%i,%i", t.HitLine.Index(), t.HitLine.special, t.HitLine.args[0], t.HitLine.args[1], t.HitLine.args[2]);
+		t.HitLine.Activate(mo, t.LineSide, SPAC_Use);
 	}
 
 	void SummonRow()

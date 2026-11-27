@@ -441,6 +441,15 @@ class EoDRules : EventHandler
 	{
 		Line ln = e.ActivatedLine;
 
+		// The stairs or elevator you arrive by carry the same code as the way out
+		// (0x46 behind the start of Entryway, Prison Cellar, The Mines, The
+		// Basement...): an exit wall beside the player start goes nowhere
+		if (ln.special == 80 && ln.args[0] == 10 && AReyePGame.CurrentFamily() == "EOD" && BesideStart(ln, e.Thing))
+		{
+			e.ShouldActivate = false;
+			return;
+		}
+
 		if (ln.special != 80 || ln.args[0] != EoDMap.SWITCHSPECIAL) { return; }
 		e.ShouldActivate = false;
 
@@ -457,5 +466,34 @@ class EoDRules : EventHandler
 				if (sw.cursector == sec) { sw.Use(e.Thing); return; }
 			}
 		}
+	}
+
+	// Whether the wall this line belongs to (the side that isn't the user's)
+	// touches the player start tile
+	static bool BesideStart(Line ln, Actor user)
+	{
+		MapHandler handler = MapHandler.Get();
+		ParsedMap pm = handler ? handler.curmap : null;
+		if (!pm) { return false; }
+
+		for (int s = 0; s < 2; s++)
+		{
+			Sector sec = s ? ln.backsector : ln.frontsector;
+			if (!sec || (user && sec == user.cursector)) { continue; }
+
+			Vector2 grid = ParsedMap.CoordsToGrid(sec.centerspot);
+			int x = int(grid.x), y = int(grid.y);
+			for (int d = 0; d < 4; d++)
+			{
+				int nx = x + (d == 0 ? 1 : d == 1 ? -1 : 0);
+				int ny = y + (d == 2 ? 1 : d == 3 ? -1 : 0);
+				if (nx < 0 || ny < 0 || nx >= pm.width || ny >= pm.height) { continue; }
+
+				int code = pm.planes[1][ny * pm.width + nx];
+				if (code >= 19 && code <= 22) { return true; } // player start, any facing
+			}
+		}
+
+		return false;
 	}
 }
