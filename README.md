@@ -3,7 +3,22 @@
 Spear Resurrection (original + 2011 new mapset), Spear: End of Destiny and
 Wolfendoom, playable in UZDoom as a mod for AFADoomer's [Wolf3D TC 3.0](https://github.com/AFADoomer/Wolf3D-TC-3.0).
 
-**Setup:** [Windows](#setup-on-windows) · [Linux](#setup-on-linux)
+**Setup:** [Windows](#setup-on-windows) · [Linux](#setup-on-linux) · [Screenshots](#screenshots)
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/dos-sr-signon.png" alt="Spear Resurrection sign-on screen (DOS)"></td>
+<td width="50%"><img src="docs/images/dos-eod-signon.png" alt="Spear: End of Destiny sign-on screen (DOS)"></td>
+</tr>
+<tr>
+<td><img src="docs/images/dos-sr-black-forest.png" alt="Spear Resurrection, Black Forest (DOS)"></td>
+<td><img src="docs/images/dos-eod-walk.gif" alt="Spear: End of Destiny, Estate Entry (DOS)"></td>
+</tr>
+<tr>
+<td align="center"><sub>Spear Resurrection (DOS original)</sub></td>
+<td align="center"><sub>Spear: End of Destiny (DOS original)</sub></td>
+</tr>
+</table>
 
 ## How it fits together
 
@@ -180,6 +195,82 @@ converted once into `run/AReyeP-data.pk3` by step 3. `WOLF4SDL` there points
 at the eod4sdl clone (default `~/Projects/areyep-ref/eod4sdl`); without it,
 or without a C++ compiler, the AdLib sound effects are skipped with a warning
 and everything else still converts.
+
+## Screenshots
+
+### DOS original and the TC
+
+The first spot of each game, in the original DOS game and in the TC with its
+default settings.
+
+<table>
+<tr><th width="50%">DOS original</th><th width="50%">AReyeP TC</th></tr>
+<tr>
+<td><img src="docs/images/dos-sr-black-forest.png" alt="Black Forest, DOS"></td>
+<td><img src="docs/images/tc-sr-black-forest.png" alt="Black Forest, TC"></td>
+</tr>
+<tr><td colspan="2" align="center"><sub>Spear Resurrection: Black Forest</sub></td></tr>
+<tr>
+<td><img src="docs/images/dos-eod-estate-entry.png" alt="Estate Entry, DOS"></td>
+<td><img src="docs/images/tc-eod-estate-entry.png" alt="Estate Entry, TC"></td>
+</tr>
+<tr><td colspan="2" align="center"><sub>End of Destiny: Estate Entry</sub></td></tr>
+</table>
+
+### Settings, before and after
+
+Each setting is in the in-game **Options** menu. Each pair is the same spot
+with only that setting changed.
+
+<table>
+<tr><th width="50%">On</th><th width="50%">Off</th></tr>
+<tr>
+<td><img src="docs/images/set-flats-on.png" alt="Floor and ceiling textures on"></td>
+<td><img src="docs/images/set-flats-off.png" alt="Floor and ceiling textures off"></td>
+</tr>
+<tr><td colspan="2"><b>Use floor/ceiling textures</b>: Spear Resurrection's floors
+and ceilings get textures instead of the original flat colours.</td></tr>
+<tr>
+<td><img src="docs/images/set-dynlights-on.png" alt="Dynamic lights on"></td>
+<td><img src="docs/images/set-dynlights-off.png" alt="Dynamic lights off"></td>
+</tr>
+<tr><td colspan="2"><b>Use dynamic lights</b>: torches and lamps light the room
+around them. With it off, the lighting is flat, as in the original.</td></tr>
+<tr>
+<td><img src="docs/images/set-clouds-on.png" alt="End of Destiny clouds on"></td>
+<td><img src="docs/images/set-clouds-off.png" alt="End of Destiny clouds off"></td>
+</tr>
+<tr><td colspan="2"><b>End of Destiny → Clouds</b>: drifting clouds over the
+star sky on End of Destiny's outdoor levels (from eod4sdl). Off shows the
+plain star sky.</td></tr>
+<tr><th>Traditional</th><th>Minimal</th></tr>
+<tr>
+<td><img src="docs/images/set-border-traditional.png" alt="Traditional screen border"></td>
+<td><img src="docs/images/set-border-minimal.png" alt="Minimal screen border"></td>
+</tr>
+<tr><td colspan="2"><b>Screen border style</b>: the stone border around the
+view, or none.</td></tr>
+</table>
+
+**End of Destiny → Snow**: End of Destiny's snowfall, as MCS wrote it, comes
+and goes in spells. **Snow Falls** picks where it falls: outdoors only (the
+default) or over the whole level, as in DOS.
+
+<p align="center"><img src="docs/images/tc-eod-snow.gif" alt="Snow and clouds over Estate Entry"></p>
+
+### Automap
+
+With the automap set to textured (`am_textured`, in the engine's automap options), it shows the
+floors and the scenery sprites. Only the areas you've seen are drawn.
+
+<table>
+<tr><th width="50%">Classic</th><th width="50%">Textured</th></tr>
+<tr>
+<td><img src="docs/images/automap-classic.png" alt="Classic automap"></td>
+<td><img src="docs/images/automap-textured.png" alt="Textured automap"></td>
+</tr>
+<tr><td colspan="2"><img src="docs/images/automap-forest.png" alt="Textured automap in the Black Forest"></td></tr>
+</table>
 
 ## Development
 
