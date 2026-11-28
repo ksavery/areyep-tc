@@ -5,6 +5,11 @@ Wolfendoom, playable in UZDoom as a mod for AFADoomer's [Wolf3D TC 3.0](https://
 
 **Setup:** [Windows](#setup-on-windows) · [Linux](#setup-on-linux) · [Screenshots](#screenshots)
 
+**The games:** [Spear Resurrection](docs/games/spear-resurrection/README.md) ·
+[Spear: End of Destiny](docs/games/end-of-destiny/README.md) ·
+[Wolfendoom](docs/games/wolfendoom/README.md). Each page has the story,
+screenshots and links to AReyeP and MCS's manual and hint book.
+
 <table>
 <tr>
 <td width="50%"><img src="docs/images/dos-sr-signon.png" alt="Spear Resurrection sign-on screen (DOS)"></td>
@@ -198,6 +203,27 @@ and everything else still converts.
 
 ## Screenshots
 
+### In action
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/tc-sr-firefight.gif" alt="Spear Resurrection: machine gun against the guards"></td>
+<td width="50%"><img src="docs/images/tc-sr-superclone.gif" alt="Spear Resurrection: the Superclone against the MCS Mk3"></td>
+</tr>
+<tr>
+<td align="center"><sub>Spear Resurrection: guards in the Subterranean mines</sub></td>
+<td align="center"><sub>Spear Resurrection: the Superclone, against the MCS Mk3</sub></td>
+</tr>
+<tr>
+<td><img src="docs/images/tc-eod-rockets.gif" alt="End of Destiny: rocket launcher at Estate Entry"></td>
+<td><img src="docs/images/tc-eod-snow.gif" alt="End of Destiny: snow and clouds at Estate Entry"></td>
+</tr>
+<tr>
+<td align="center"><sub>End of Destiny: rockets at Estate Entry</sub></td>
+<td align="center"><sub>End of Destiny: snow and drifting clouds</sub></td>
+</tr>
+</table>
+
 ### DOS original and the TC
 
 The first spot of each game, in the original DOS game and in the TC with its
@@ -256,8 +282,6 @@ view, or none.</td></tr>
 and goes in spells. **Snow Falls** picks where it falls: outdoors only (the
 default) or over the whole level, as in DOS.
 
-<p align="center"><img src="docs/images/tc-eod-snow.gif" alt="Snow and clouds over Estate Entry"></p>
-
 ### Automap
 
 With the automap set to textured (`am_textured`, in the engine's automap options), it shows the
@@ -307,6 +331,8 @@ here, and you supply your own copies.
   AReyeP (Steve Walley) and MCS Amsterdam, with BrotherTank; https://www.areyep.com/.
   This project uses their games as its base, with credit, as AReyeP asked.
 - **Wolfendoom** (2001) — AReyeP, with MCS Amsterdam.
+- The game pages in `docs/games/` (stories, manuals, hint books, tactics,
+  their screenshots) are AReyeP and MCS's, from https://www.areyep.com/.
 - Spear Resurrection SDL / 10th Anniversary Edition — Andy Nonymous (SDL code), Ack (two new levels).
 - EOD4SDL recreation (behaviour reference) — Kyle Albert.
 - Wolf3D TC 3.0 — AFADoomer; see `Credits.txt` in the TC for its own credits.
