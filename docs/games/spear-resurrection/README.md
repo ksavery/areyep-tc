@@ -1,10 +1,12 @@
 # Spear Resurrection
 
+<p><img src="images/Title.gif" alt="Spear Resurrection" height="120"> <img src="images/Resurect.jpg" alt="Spear Resurrection"></p>
+
 AReyeP and MCS's 2001 sequel to *Spear of Destiny*: B.J. goes after the Spear
 again, into Baron von Schmitt's castle in Spain. The TC plays both mapsets:
 the original 2001 maps, and the new maps from the 2011 SDL release.
 
-**[Manual](MANUAL.md)** · **[Hint book](HINTS.md)** (spoilers) · **[Tactics](TACTICS.md)** ·
+**[Manual](MANUAL.md)** · **[Hint book](HINTS.md)** (spoilers) · **[Tactics](TACTICS.md)** · [Hall of Fame](HALL-OF-FAME.md) ·
 [areyep.com page](https://www.areyep.com/RIPandMCS-Spearres-Main.html) · [back to the TC](../../../README.md)
 
 ## In the TC

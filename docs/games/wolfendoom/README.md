@@ -1,5 +1,7 @@
 # Wolfendoom
 
+<p><img src="images/wolftitle2.jpg" alt="Wolfendoom"></p>
+
 AReyeP's 1995-96 Wolfenstein 3D add-on with Doom's look, rebuilt in 2001 as a
 total conversion: B.J. Blazkowicz Jnr against six portals to the "Doom
 Dimension", across six UAC-site episodes.
@@ -34,3 +36,11 @@ To download "Wolfendoom" now, [click here!](https://www.areyep.com/Wolfdoom.zip)
 <tr><td width="50%"><img src="images/Shot7.jpg" alt="UAC Site 1 - Administration Offices"><br><sub>UAC Site 1 - Administration Offices</sub></td><td width="50%"><img src="images/Shot3.jpg" alt="UAC Site 1 - Portal Entrance"><br><sub>UAC Site 1 - Portal Entrance</sub></td></tr>
 <tr><td width="50%"><img src="images/Shot5.jpg" alt="A Doom Dimension Welcoming Party"><br><sub>A Doom Dimension Welcoming Party</sub></td><td width="50%"><img src="images/Shot8.jpg" alt="UAC6 Doom Dimension - Inner Portal"><br><sub>UAC6 Doom Dimension - Inner Portal</sub></td></tr>
 </table>
+
+<details><summary>Two more from areyep.com (final levels: spoilers)</summary>
+
+<table>
+<tr><td width="50%"><img src="images/Shot4.jpg" alt="UAC1 Doom Dimension - Final Level Boss"><br><sub>UAC1 Doom Dimension - Final Level Boss</sub></td><td width="50%"><img src="images/Shot6.jpg" alt="UAC5 Doom Dimension - Final Level"><br><sub>UAC5 Doom Dimension - Final Level</sub></td></tr>
+</table>
+
+</details>

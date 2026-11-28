@@ -1,8 +1,12 @@
 # Spear: End of Destiny: Game Manual
 
+![](images/z71.gif)
+
 *From [areyep.com](https://www.areyep.com/eodmanual/Game_Manual.html), by AReyeP and MCS, reproduced here for players of the TC port. Text and pictures are theirs; the links to downloads go to their site.*
 
 <a id="introduction"></a>
+
+![](images/z61.gif)
 
 ## To All Wolfenstein 3D Players
 
@@ -20,6 +24,8 @@ id software's "Spear of Destiny" was a sequel (some may argue it was a "prequel"
 Although it's not necessary, you'd be advised to play the games in sequential order to fully appreciate the evolving storyline, as well as to appreciate the enhancements that have been made to both graphics and the original game engine by the Wolfenstein 3D modding community.
 
 <a id="mission-briefing"></a>
+
+![](images/z63.gif)
 
 ## Mission Briefing - The Story So Far...
 
@@ -126,6 +132,8 @@ Gritting your teeth, you unsheathe your knife, and make your way slowly along th
 Destiny awaited...
 
 <a id="part-3"></a>
+
+![](images/z65.gif)
 
 ## Playing The Game - Menu
 
@@ -585,6 +593,8 @@ You can always cheat by pressing the HAC keys simultaneously at any time during 
 
 <a id="part-4"></a>
 
+![](images/z67.gif)
+
 ## Troubleshooting
 
 ![](images/z05.jpg)
@@ -776,6 +786,8 @@ If you do find that some wall graphics look decidedly out of place whilst playin
 AReyeP and MCS take no responsibility for problems encountered as a result of running Spear "End of Destiny", or as a result of following or attempting to follow suggested courses of action as per the above "Trouble Shooting" section.
 
 <a id="part-5"></a>
+
+![](images/z69.gif)
 
 ## A Big Thanks To id Software
 

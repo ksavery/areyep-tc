@@ -1,5 +1,7 @@
 # Spear: End of Destiny
 
+<p><img src="images/Eodstartscreen.jpg" alt="Spear: End of Destiny" height="120"> <img src="images/Eodtitlepic.jpg" alt="End of Destiny"></p>
+
 AReyeP and MCS's sequel to *Spear Resurrection*: 26 levels plus 12
 secret ones, snowbound estates, mines, fire walls, rockets and a new
 arsenal. The TC uses the v1.12 editor's version.
